@@ -17,7 +17,10 @@ public class PlayerCtrl : MonoBehaviour
     [Range(2f, 5f)]
     public float senseDist;
 
-    private Transform rightHand;
+    
+    private Coroutine punchCor;
+
+    private Transform rightHandObj;
 
     private bool canMove = true;
     private Rigidbody rb;
@@ -55,6 +58,8 @@ public class PlayerCtrl : MonoBehaviour
         transform.eulerAngles = (new Vector3(0, rotX, 0));
         if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y == 0)
             StartCoroutine(DelayedJump(0.5f));
+
+        
     }
 
     private IEnumerator DelayedJump(float delayTime)
@@ -65,33 +70,63 @@ public class PlayerCtrl : MonoBehaviour
         canMove = true;
     }
 
+    private IEnumerator PunchCor()
+    {
+        float punchAnimMag = 1;
+        animator.SetLayerWeight(1, 1);
+        animator.SetTrigger("Punch");
+        while (true)
+        {
+            yield return null;
+            if (animator.GetCurrentAnimatorStateInfo(1).normalizedTime > 0.5f)
+            {
+                punchAnimMag -= Time.deltaTime;
+                animator.SetLayerWeight(1, punchAnimMag);
+                if (punchAnimMag <= 0)
+                    break;
+            }
+        }
+        punchCor = null;
+    }
+
     private void PlayerAnim()
     {
+        //블렌드 애니메이션 연습
         animator.SetFloat("Vertical", Input.GetAxis("Vertical"));
         animator.SetFloat("Horizontal", Input.GetAxis("Horizontal"));
+        //
 
+        //애니메이션 레이어 연습
+
+        if (Input.GetMouseButtonDown(0) && punchCor == null)
+        {
+            punchCor = StartCoroutine(PunchCor());
+        }
         if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y == 0)
             animator.SetTrigger("Jump");
 
+
+        //IK 연습
         Collider[] touchables = Physics.OverlapSphere(transform.position, senseDist, 1 << LayerMask.NameToLayer("Touchable"));
         if (touchables.Length <= 0)
         {
-            rightHand = null;
+            rightHandObj = null;
         }
         else
         {
             float dist = Vector3.Distance(transform.position, touchables[0].transform.position);
             foreach (var item in touchables)
             {
-                if (rightHand != null)
+                if (rightHandObj != null)
                 {
                     if (Vector3.Distance(transform.position, item.transform.position) < dist)
-                        rightHand = item.transform;
+                        rightHandObj = item.transform;
                 }
                 else
-                    rightHand = item.transform;
+                    rightHandObj = item.transform;
             }
         }
+        //
     }
 
     void OnAnimatorIK()
@@ -104,9 +139,9 @@ public class PlayerCtrl : MonoBehaviour
                 animator.SetLookAtWeight(1);
                 animator.SetLookAtPosition(lookAt.position);
             }
-            if(rightHand != null) { 
-                animator.SetIKPosition(AvatarIKGoal.RightHand, rightHand.position);
-                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, (senseDist - Vector3.Distance(transform.position, rightHand.position)) / senseDist);
+            if(rightHandObj != null) { 
+                animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
+                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, (senseDist - Vector3.Distance(transform.position, rightHandObj.position)) / senseDist);
             }
         }
     }
