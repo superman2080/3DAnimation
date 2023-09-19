@@ -573,7 +573,7 @@ GameObject:
   m_Layer: 6
   m_Name: RightHand
   m_TagString: Untagged
-  m_Icon: {fileID: 6519382022992737161, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -907,6 +907,7 @@ GameObject:
   - component: {fileID: 5866666021590533859}
   - component: {fileID: 5866666021590533860}
   - component: {fileID: 5866666021590533861}
+  - component: {fileID: 5866666021590533862}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1787,7 +1788,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -3702037217650275473, guid: 41cb9b25540b0d540a27ba643af769ae, type: 3}
+  m_Mesh: {fileID: -3702037217650275473, guid: 8d4eefb6415d97a4d8668224ce7a0aeb, type: 3}
   m_Bones:
   - {fileID: 5472622940673351941}
   - {fileID: 141009827940070752}
@@ -2297,6 +2298,22 @@ MonoBehaviour:
   mouseTr: {fileID: 280084210}
   lookAt: {fileID: 1474524880}
   senseDist: 3.06
+--- !u!114 &5866666021590533862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132149474362913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RigLayers:
+  - m_Rig: {fileID: 0}
+    m_Active: 1
+  m_Effectors: []
 --- !u!4 &6142095154325795368
 Transform:
   m_ObjectHideFlags: 0

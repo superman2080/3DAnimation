@@ -3,7 +3,27 @@ guid: 41cb9b25540b0d540a27ba643af769ae
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Ch36_1001_Diffuse
+    second: {fileID: 2800000, guid: c4a01526e33a7a54ba96aec4194111b0, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Ch36_1001_Glossiness
+    second: {fileID: 2800000, guid: 75e8686d23944d8499843db7125f4bea, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Ch36_1001_Normal
+    second: {fileID: 2800000, guid: 6b31c186a1f299a4b9ae1de046b1ab91, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Ch36_1001_Specular
+    second: {fileID: 2800000, guid: de5d347883fb5d645b51b70808b4e20f, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -80,6 +100,7 @@ ModelImporter:
   - f3a2dd1acf702284db6cc5c113c27851
   - 10ba8a914e4c8c641bc9a4a12f8f0874
   - 03569b57c64cbb3479e2bee97196a7aa
+  - c7cf83dc935e61d42b573a9b8a2e90ac
   importAnimation: 1
   humanDescription:
     serializedVersion: 3

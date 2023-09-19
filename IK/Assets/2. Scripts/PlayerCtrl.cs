@@ -67,10 +67,11 @@ public class PlayerCtrl : MonoBehaviour
 
     private void PlayerAnim()
     {
-        animator.SetBool("Walk", dir != Vector3.zero);
+        animator.SetFloat("Vertical", Input.GetAxis("Vertical"));
+        animator.SetFloat("Horizontal", Input.GetAxis("Horizontal"));
+
         if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y == 0)
             animator.SetTrigger("Jump");
-
 
         Collider[] touchables = Physics.OverlapSphere(transform.position, senseDist, 1 << LayerMask.NameToLayer("Touchable"));
         if (touchables.Length <= 0)
