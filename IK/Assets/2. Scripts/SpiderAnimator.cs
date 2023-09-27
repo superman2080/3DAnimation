@@ -13,6 +13,7 @@ public class SpiderAnimator : MonoBehaviour
     private Vector3[] lastLegPos = new Vector3[4];
     private Vector3[] moveToLegPos = new Vector3[4];
     private Coroutine[] legCor = new Coroutine[4];
+    private float smoothness = 5f;
 
 
     // Start is called before the first frame update
@@ -27,13 +28,12 @@ public class SpiderAnimator : MonoBehaviour
 
     private void Update()
     {
-        transform.Translate(new Vector3(0, 0, Input.GetAxis("Vertical") * 0.3f * Time.deltaTime));   
+        transform.Translate(new Vector3(0, 0, Input.GetAxis("Vertical") * maxLegDist * Time.deltaTime));   
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-
         SpiderAnim();
     }
 
@@ -62,21 +62,18 @@ public class SpiderAnimator : MonoBehaviour
         }
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
-        Vector3 normal = Vector3.Cross(v1, v2).normalized;
-        Vector3 up = Vector3.Lerp(body.position, normal, 1f);
-        transform.up = up;
+        transform.up = Vector3.Cross(v1, v2).normalized;
     }
 
     private IEnumerator LegIK(int idx, Vector3 moveTo)
     {
         Vector3 origin = lastLegPos[idx];
-        float dT = 0;
-        
-        while (dT < 0.3f)
+
+        for (int i = 1; i <= smoothness; ++i)
         {
-            lastLegPos[idx] = Vector3.Lerp(origin, moveTo, dT / 0.3f);
-            dT += Time.deltaTime;
-            yield return null;
+            lastLegPos[idx] = Vector3.Lerp(origin, moveTo, i / smoothness);
+            
+            yield return new WaitForFixedUpdate();
         }
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
