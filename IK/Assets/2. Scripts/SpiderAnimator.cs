@@ -13,8 +13,9 @@ public class SpiderAnimator : MonoBehaviour
     private Vector3[] lastLegPos = new Vector3[4];
     private Vector3[] moveToLegPos = new Vector3[4];
     private Coroutine[] legCor = new Coroutine[4];
-    private float smoothness = 5f;
-
+    private float smoothness = 30f;
+    private float[] step = { 0.5f, 0.5f, 1f, 1f };
+    //private int[] nowLeg = new int[2];
 
     // Start is called before the first frame update
     void Start()
@@ -54,10 +55,11 @@ public class SpiderAnimator : MonoBehaviour
 
         for (int i = 0; i < legTarget.Length; i++)
         {
-            if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
+            if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
             {
-                Debug.LogWarning(i);
                 legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+                step[i] = step[i] == 1 ? 0.5f : 1f;
+                //SetNowLeg();
             }
         }
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
@@ -71,8 +73,9 @@ public class SpiderAnimator : MonoBehaviour
 
         for (int i = 1; i <= smoothness; ++i)
         {
+            Debug.Log(Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist);
             lastLegPos[idx] = Vector3.Lerp(origin, moveTo, i / smoothness);
-            
+            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
             yield return new WaitForFixedUpdate();
         }
         lastLegPos[idx] = moveTo;
@@ -93,4 +96,18 @@ public class SpiderAnimator : MonoBehaviour
             Gizmos.DrawWireSphere(legTarget[i].position, 0.05f);
         }
     }
+
+    //private void SetNowLeg()
+    //{
+    //    if (nowLeg[0] == 0)
+    //    {
+    //        nowLeg[0] = 1;
+    //        nowLeg[0] = 3;
+    //    }
+    //    else
+    //    {
+    //        nowLeg[0] = 0;
+    //        nowLeg[0] = 2;
+    //    }
+    //}
 }
