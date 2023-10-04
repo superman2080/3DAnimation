@@ -7,15 +7,24 @@ public class SpiderAnimator : MonoBehaviour
     
     public float maxLegDist;
     public Transform body;
+    //현재 다리가 가리킬 타겟 트랜스폼
     public Transform[] legTarget;
+
+    //레이캐스팅 트랜스폼
     public Transform[] legRayTr;
 
+    //마지막 다리 위치
     private Vector3[] lastLegPos = new Vector3[4];
+
+    //이동할 다리 위치
     private Vector3[] moveToLegPos = new Vector3[4];
+
+    //현재 코루틴 실행중인가
     private Coroutine[] legCor = new Coroutine[4];
-    private float smoothness = 30f;
+    private float smoothness = 15f;
     private float[] step = { 0.5f, 0.5f, 1f, 1f };
-    //private int[] nowLeg = new int[2];
+    private bool isFirstStep = true;
+    private float rotY;
 
     // Start is called before the first frame update
     void Start()
@@ -29,7 +38,20 @@ public class SpiderAnimator : MonoBehaviour
 
     private void Update()
     {
-        transform.Translate(new Vector3(0, 0, Input.GetAxis("Vertical") * maxLegDist * Time.deltaTime));   
+        float v = Input.GetAxis("Vertical");
+        float h = Input.GetAxis("Horizontal");
+        if (v == 0 && h == 0)
+        {
+            isFirstStep = true;
+            for (int i = 0; i < legTarget.Length; i++)
+            {
+                if ((legTarget[i].position - moveToLegPos[i]).magnitude >= 0.01f && legCor[i] == null)
+                    legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+            }
+        }
+        transform.Translate(new Vector3(h * maxLegDist * Time.deltaTime, 0, v * maxLegDist * Time.deltaTime));
+        //rotY = Mathf.Repeat(rotY + h, 360);
+        //transform.eulerAngles = Vector3.up * rotY;
     }
 
     // Update is called once per frame
@@ -53,18 +75,55 @@ public class SpiderAnimator : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < legTarget.Length; i++)
+        if (isFirstStep)
         {
-            if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
+            for (int i = 0; i < legTarget.Length; i++)
             {
-                legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-                step[i] = step[i] == 1 ? 0.5f : 1f;
-                //SetNowLeg();
+                if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
+                {
+                    legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+                    //step[i] = step[i] == 1 ? 0.5f : 1f;
+                    isFirstStep = false;
+                }
             }
         }
+        else
+        {
+            for (int i = 0; i < legTarget.Length; i++)
+            {
+                if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
+                {
+                    legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+                    //step[i] = step[i] == 1 ? 0.5f : 1f;
+                }
+            }
+        }
+
+
+        //for (int i = 0; i < legTarget.Length; i++)
+        //{
+        //    if (isFirstStep)
+        //    {
+        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
+        //        {
+        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+        //            step[i] = step[i] == 1 ? 0.5f : 1f;
+        //            isFirstStep = false;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
+        //        {
+        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+        //            step[i] = step[i] == 1 ? 0.5f : 1f;
+        //        }
+        //    }
+        //}
+
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
-        transform.up = Vector3.Cross(v1, v2).normalized;
+        body.up = Vector3.Cross(v1, v2).normalized;
     }
 
     private IEnumerator LegIK(int idx, Vector3 moveTo)
@@ -96,18 +155,4 @@ public class SpiderAnimator : MonoBehaviour
             Gizmos.DrawWireSphere(legTarget[i].position, 0.05f);
         }
     }
-
-    //private void SetNowLeg()
-    //{
-    //    if (nowLeg[0] == 0)
-    //    {
-    //        nowLeg[0] = 1;
-    //        nowLeg[0] = 3;
-    //    }
-    //    else
-    //    {
-    //        nowLeg[0] = 0;
-    //        nowLeg[0] = 2;
-    //    }
-    //}
 }
