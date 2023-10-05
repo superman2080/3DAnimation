@@ -21,10 +21,11 @@ public class SpiderAnimator : MonoBehaviour
 
     //현재 코루틴 실행중인가
     private Coroutine[] legCor = new Coroutine[4];
-    private float smoothness = 15f;
+    private float smoothness = 10f;
     private float[] step = { 0.5f, 0.5f, 1f, 1f };
     private bool isFirstStep = true;
     private float rotY;
+    private Vector3 lastBodyUp;
 
     // Start is called before the first frame update
     void Start()
@@ -33,7 +34,7 @@ public class SpiderAnimator : MonoBehaviour
         {
             lastLegPos[i] = legTarget[i].position;
         }
-
+        lastBodyUp = transform.up;
     }
 
     private void Update()
@@ -50,7 +51,7 @@ public class SpiderAnimator : MonoBehaviour
             }
         }
         transform.Translate(new Vector3(h * maxLegDist * Time.deltaTime, 0, v * maxLegDist * Time.deltaTime));
-        //rotY = Mathf.Repeat(rotY + h, 360);
+        rotY = Mathf.Repeat(rotY + h, 360);
         //transform.eulerAngles = Vector3.up * rotY;
     }
 
@@ -82,7 +83,6 @@ public class SpiderAnimator : MonoBehaviour
                 if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
                 {
                     legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-                    //step[i] = step[i] == 1 ? 0.5f : 1f;
                     isFirstStep = false;
                 }
             }
@@ -94,7 +94,6 @@ public class SpiderAnimator : MonoBehaviour
                 if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
                 {
                     legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-                    //step[i] = step[i] == 1 ? 0.5f : 1f;
                 }
             }
         }
@@ -123,7 +122,12 @@ public class SpiderAnimator : MonoBehaviour
 
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
-        body.up = Vector3.Cross(v1, v2).normalized;
+        //body.up = Vector3.Cross(v1, v2).normalized;
+        Vector3 normal = Vector3.Cross(v1, v2).normalized;
+        Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
+        transform.up = Quaternion.AngleAxis(rotY, up) * transform.up;
+        Debug.Log(transform. up);
+        lastBodyUp = up;
     }
 
     private IEnumerator LegIK(int idx, Vector3 moveTo)
@@ -132,7 +136,6 @@ public class SpiderAnimator : MonoBehaviour
 
         for (int i = 1; i <= smoothness; ++i)
         {
-            Debug.Log(Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist);
             lastLegPos[idx] = Vector3.Lerp(origin, moveTo, i / smoothness);
             lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
             yield return new WaitForFixedUpdate();
