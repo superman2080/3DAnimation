@@ -40,19 +40,20 @@ public class SpiderAnimator : MonoBehaviour
     private void Update()
     {
         float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal");
+        float h = Input.GetAxis("Horizontal") * 0.05f;
         if (v == 0 && h == 0)
         {
             isFirstStep = true;
-            for (int i = 0; i < legTarget.Length; i++)
-            {
-                if ((legTarget[i].position - moveToLegPos[i]).magnitude >= 0.01f && legCor[i] == null)
-                    legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-            }
+            //for (int i = 0; i < legTarget.Length; i++)
+            //{
+            //    if ((legTarget[i].position - moveToLegPos[i]).magnitude >= 0.01f && legCor[i] == null)
+            //        legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+            //}
         }
-        transform.Translate(new Vector3(h * maxLegDist * Time.deltaTime, 0, v * maxLegDist * Time.deltaTime));
+        transform.Translate(0, 0, v * maxLegDist * Time.deltaTime);
         rotY = Mathf.Repeat(rotY + h, 360);
-        //transform.eulerAngles = Vector3.up * rotY;
+        
+        
     }
 
     // Update is called once per frame
@@ -125,8 +126,11 @@ public class SpiderAnimator : MonoBehaviour
         //body.up = Vector3.Cross(v1, v2).normalized;
         Vector3 normal = Vector3.Cross(v1, v2).normalized;
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
-        transform.up = Quaternion.AngleAxis(rotY, up) * transform.up;
-        Debug.Log(transform. up);
+        //up = Quaternion.AngleAxis(rotY, Vector3.up) * up;
+        transform.up = up;
+        transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
+
+        //transform.rotation = Quaternion.LookRotation(transform.forward, up);
         lastBodyUp = up;
     }
 
