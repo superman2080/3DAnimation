@@ -218,4 +218,15 @@ public class PlayerCtrl : MonoBehaviour
 
         return theta <= degree;
     }
+
+    private void UnequipWeapon()
+    {
+        if (nowWeapon == null)
+            return;
+
+        if(Physics.Raycast(weaponTr.position, Vector3.down, out RaycastHit hit, 5f))
+        {
+            nowWeapon.transform.SetParent(null);
+        }
+    }
 }
