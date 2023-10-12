@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class PlayerCtrl : MonoBehaviour
 {
@@ -13,12 +15,15 @@ public class PlayerCtrl : MonoBehaviour
     public float speed;
     public Transform mouseTr;
     public Transform lookAt;
+    public Transform headTr;
+    public Transform weaponTr;
     [Range(2f, 5f)]
     public float senseDist;
 
     
     private Coroutine punchCor;
 
+    public GameObject nowWeapon;
     private Transform rightHandObj;
 
     private bool canMove = true;
@@ -38,11 +43,11 @@ public class PlayerCtrl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        PlayerMove();
+        PlayerBehavior();
         PlayerAnim();
     }
 
-    private void PlayerMove()
+    private void PlayerBehavior()
     {
         if(canMove)
         {
@@ -59,7 +64,13 @@ public class PlayerCtrl : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y == 0)
             StartCoroutine(DelayedJump(0.5f));
 
-        
+        if(Input.GetMouseButtonDown(0) && nowWeapon == null && rightHandObj != null)
+        {
+            rightHandObj.SetParent(weaponTr);
+            nowWeapon = rightHandObj.gameObject;
+            nowWeapon.transform.position = weaponTr.position;
+            nowWeapon.transform.eulerAngles = weaponTr.eulerAngles;
+        }
     }
 
     private IEnumerator DelayedJump(float delayTime)
@@ -98,7 +109,7 @@ public class PlayerCtrl : MonoBehaviour
 
         //애니메이션 레이어 연습
 
-        if (Input.GetMouseButtonDown(0) && punchCor == null)
+        if (Input.GetMouseButtonDown(0) && punchCor == null && rightHandObj == null)
         {
             punchCor = StartCoroutine(PunchCor());
         }
@@ -114,23 +125,53 @@ public class PlayerCtrl : MonoBehaviour
         }
         else
         {
-            float dist = Vector3.Distance(transform.position, touchables[0].transform.position);
-            foreach (var item in touchables)
+            //float dist = float.PositiveInfinity;
+            int idx = -1;
+            for (int i = 0; i < touchables.Length; i++)
             {
-                if (rightHandObj != null)
+                if (touchables[i].gameObject == nowWeapon)
+                    continue;
+
+                if (IsTargetInSight(touchables[i].transform, headTr, 30f))
                 {
-                    if (Vector3.Distance(transform.position, item.transform.position) < dist && IsTargetInSight(item.transform, lookAt, 60f))
-                        rightHandObj = item.transform;
-                }
-                else
-                {
-                    if (IsTargetInSight(item.transform, lookAt, 60f))
+                    if(idx == -1)
                     {
-                        rightHandObj = item.transform;
+                        idx = i;
+                    }
+                    else if(Vector3.Distance(transform.position, touchables[i].transform.position) < Vector3.Distance(transform.position, touchables[idx].transform.position))
+                    {
+                        idx = i;
                     }
                 }
-
             }
+            if(idx == -1)
+            {
+                rightHandObj = null;
+            }
+            else
+            {
+                rightHandObj = touchables[idx].transform;
+            }
+            //foreach (var item in touchables)
+            //{
+            //    if (rightHandObj != null)
+            //    {
+            //        if (Vector3.Distance(transform.position, item.transform.position) < dist && IsTargetInSight(item.transform, headTr, 60f))
+            //        {
+            //            rightHandObj = item.transform;
+            //            dist = Vector3.Distance(transform.position, item.transform.position);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (IsTargetInSight(item.transform, lookAt, 60f))
+            //        {
+            //            rightHandObj = item.transform;
+            //            dist = Vector3.Distance(transform.position, item.transform.position);
+            //        }
+            //    }
+
+            //}
         }
         //
     }
@@ -160,7 +201,7 @@ public class PlayerCtrl : MonoBehaviour
         Vector3 originPos = cam.transform.localPosition;
         while(dT < time)
         {
-            cam.transform.localPosition = originPos + new Vector3(Random.Range(-nowIntense, nowIntense), Random.Range(-nowIntense, nowIntense), 0);
+            cam.transform.localPosition = originPos + new Vector3(UnityEngine.Random.Range(-nowIntense, nowIntense), UnityEngine. Random.Range(-nowIntense, nowIntense), 0);
             nowIntense = Mathf.Lerp(intense, 0, dT / time);
             dT += Time.deltaTime;
             yield return null;
@@ -168,13 +209,13 @@ public class PlayerCtrl : MonoBehaviour
         cam.transform.localPosition = originPos;
     }
 
-    private bool IsTargetInSight(Transform target, Transform origin, float angle)
+    private bool IsTargetInSight(Transform target, Transform origin, float degree)
     {
         Vector3 dir = (target.position - origin.position).normalized;
 
-        float dot = Vector3.Dot(origin.up, dir);
-        float theta = dot * Mathf.Deg2Rad;
+        float dot = Vector3.Dot(origin.forward, dir);
+        float theta = MathF.Acos(dot) * Mathf.Rad2Deg;
 
-        return theta < angle;
+        return theta <= degree;
     }
 }
