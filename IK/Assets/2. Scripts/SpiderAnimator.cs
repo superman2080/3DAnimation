@@ -128,6 +128,7 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
         //up = Quaternion.AngleAxis(rotY, Vector3.up) * up;
         transform.up = up;
+        //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
         transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
 
         //transform.rotation = Quaternion.LookRotation(transform.forward, up);

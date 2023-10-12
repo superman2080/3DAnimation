@@ -13,7 +13,6 @@ public class PlayerCtrl : MonoBehaviour
     public float speed;
     public Transform mouseTr;
     public Transform lookAt;
-
     [Range(2f, 5f)]
     public float senseDist;
 
@@ -33,6 +32,7 @@ public class PlayerCtrl : MonoBehaviour
         rb = gameObject.GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        
     }
 
     // Update is called once per frame
@@ -119,11 +119,17 @@ public class PlayerCtrl : MonoBehaviour
             {
                 if (rightHandObj != null)
                 {
-                    if (Vector3.Distance(transform.position, item.transform.position) < dist)
+                    if (Vector3.Distance(transform.position, item.transform.position) < dist && IsTargetInSight(item.transform, lookAt, 60f))
                         rightHandObj = item.transform;
                 }
                 else
-                    rightHandObj = item.transform;
+                {
+                    if (IsTargetInSight(item.transform, lookAt, 60f))
+                    {
+                        rightHandObj = item.transform;
+                    }
+                }
+
             }
         }
         //
@@ -144,5 +150,31 @@ public class PlayerCtrl : MonoBehaviour
                 animator.SetIKPositionWeight(AvatarIKGoal.RightHand, (senseDist - Vector3.Distance(transform.position, rightHandObj.position)) / senseDist);
             }
         }
+    }
+
+    public static IEnumerator CameraShakeCor(float intense, float time)
+    {
+        float dT = 0;
+        float nowIntense = intense;
+        Camera cam = Camera.main;
+        Vector3 originPos = cam.transform.localPosition;
+        while(dT < time)
+        {
+            cam.transform.localPosition = originPos + new Vector3(Random.Range(-nowIntense, nowIntense), Random.Range(-nowIntense, nowIntense), 0);
+            nowIntense = Mathf.Lerp(intense, 0, dT / time);
+            dT += Time.deltaTime;
+            yield return null;
+        }
+        cam.transform.localPosition = originPos;
+    }
+
+    private bool IsTargetInSight(Transform target, Transform origin, float angle)
+    {
+        Vector3 dir = (target.position - origin.position).normalized;
+
+        float dot = Vector3.Dot(origin.up, dir);
+        float theta = dot * Mathf.Deg2Rad;
+
+        return theta < angle;
     }
 }
