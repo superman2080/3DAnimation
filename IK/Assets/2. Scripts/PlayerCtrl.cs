@@ -70,6 +70,7 @@ public class PlayerCtrl : MonoBehaviour
             nowWeapon = rightHandObj.gameObject;
             nowWeapon.transform.position = weaponTr.position;
             nowWeapon.transform.eulerAngles = weaponTr.eulerAngles;
+            nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
         }
     }
 
@@ -83,9 +84,11 @@ public class PlayerCtrl : MonoBehaviour
 
     private IEnumerator PunchCor()
     {
+        nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(true);
         float punchAnimMag = 1;
         animator.SetLayerWeight(1, 1);
-        animator.SetTrigger("Punch");
+        if (nowWeapon != null)
+            animator.SetTrigger("Punch");
         while (true)
         {
             yield return null;
@@ -97,6 +100,8 @@ public class PlayerCtrl : MonoBehaviour
                     break;
             }
         }
+
+        nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
         punchCor = null;
     }
 
@@ -109,7 +114,7 @@ public class PlayerCtrl : MonoBehaviour
 
         //애니메이션 레이어 연습
 
-        if (Input.GetMouseButtonDown(0) && punchCor == null && rightHandObj == null)
+        if (Input.GetMouseButtonDown(0) && punchCor == null && nowWeapon != null)
         {
             punchCor = StartCoroutine(PunchCor());
         }
@@ -227,6 +232,25 @@ public class PlayerCtrl : MonoBehaviour
         if(Physics.Raycast(weaponTr.position, Vector3.down, out RaycastHit hit, 5f))
         {
             nowWeapon.transform.SetParent(null);
+        }
+    }
+
+    public void Attack()
+    {
+        if (nowWeapon == null)
+            return;
+
+        StartCoroutine(CameraShakeCor(0.1f, 0.1f));
+
+        WeaponCtrl weapon = nowWeapon.GetComponent<WeaponCtrl>();
+
+        Collider[] colliders = Physics.OverlapSphere(weapon.transform.position, weapon.attackDist);
+        if(colliders.Length > 0)
+        {
+            foreach (var entity in colliders)
+            {
+                Debug.Log(entity.name);
+            }
         }
     }
 }
