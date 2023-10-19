@@ -23,10 +23,12 @@ public class PlayerCtrl : MonoBehaviour
 
     
     private Coroutine attackCor;
+    private Coroutine jumpCor;
 
+    [HideInInspector]
     public GameObject nowWeapon;
 
-    private const int maxAttackComboNum = 1;
+    private readonly int maxAttackComboNum = 2;
     private Transform rightHandObj;     //집을 오브젝트
 
     private bool canMove = true;
@@ -40,7 +42,8 @@ public class PlayerCtrl : MonoBehaviour
     {
         rb = gameObject.GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;    }
+        Cursor.visible = false;
+    }
 
     // Update is called once per frame
     void Update()
@@ -67,10 +70,9 @@ public class PlayerCtrl : MonoBehaviour
         //점프
         if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y <= 0)
         {
-            if (Physics.OverlapSphere(jumpTr.position, 0.1f, 1 << LayerMask.NameToLayer("Ground")).Length > 0) 
+            if (Physics.OverlapSphere(jumpTr.position, 0.1f, 1 << LayerMask.NameToLayer("Ground")).Length > 0 && jumpCor == null) 
             {
-                Debug.LogError("!");
-                StartCoroutine(DelayedJump(0.5f));
+                jumpCor = StartCoroutine(DelayedJump(0.5f));
             }
         }
 
@@ -90,85 +92,13 @@ public class PlayerCtrl : MonoBehaviour
     private IEnumerator DelayedJump(float delayTime)
     {
         canMove = false;
+        animator.SetTrigger("Jump");
         yield return new WaitForSeconds(delayTime);
         rb.AddForce(Vector3.up * 5f, ForceMode.Impulse);
         canMove = true;
+        jumpCor = null;
     }
 
-    //    private IEnumerator PunchCor()
-    //    {
-    //        nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(true);
-    //        float punchAnimMag = 1;
-    //        animator.SetLayerWeight(1, 1);
-    //        if (nowWeapon != null)
-    //            animator.SetTrigger("Attack0");
-    //        while (true)
-    //        {
-    //            yield return null;
-    //            if (animator.GetCurrentAnimatorStateInfo(1).normalizedTime > 0.5f)
-    //            {
-    //                punchAnimMag -= Time.deltaTime;
-    ////                animator.SetLayerWeight(1, punchAnimMag);
-    //                if (punchAnimMag <= 0)
-    //                    break;
-    //            }
-    //        }
-    //        animator.SetLayerWeight(1, 0);
-    //        nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
-    //        attackCor = null;
-    //    }
-
-    private IEnumerator PunchCor(int idx, int maxComboCnt)
-    {
-        bool nextCombo = false;
-
-        nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(true);
-        animator.SetLayerWeight(1, 1);
-        animator.SetTrigger("Attack" + idx.ToString());
-        yield return new WaitUntil(() => IsAnimationClipPlaying("Attack" + idx.ToString(), 1) == true);
-        while (true)
-        {
-            yield return null;
-            if (Input.GetMouseButton(0) && idx < maxAttackComboNum)
-            {
-                nextCombo = true;
-            }
-            if (animator.GetCurrentAnimatorStateInfo(1).normalizedTime >= 0.95f)
-                break;
-        }
-        if (nextCombo)
-        {
-            attackCor = StartCoroutine(PunchCor(idx + 1, maxAttackComboNum));
-            yield break;
-        }
-        else
-        {
-            nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
-            yield return StartCoroutine(LerpAnimationLayer(1f, 0, 1, 0.25f));
-            animator.SetTrigger("AttackIdle");
-            attackCor = null;
-        }
-    }
-
-    //애니메이션 선형보간(레이어 지정)
-    private IEnumerator LerpAnimationLayer(float start, float end, int idx, float duration)
-    {
-        float dT = 0;
-        animator.SetLayerWeight(1, start);
-        while(dT < duration)
-        {
-            dT += Time.deltaTime;
-            yield return null;
-            animator.SetLayerWeight(idx, Mathf.Lerp(start, end, dT / duration));
-        }
-        animator.SetLayerWeight(1, end);
-    }
-
-    //애니메이션 실행중인지 참조
-    private bool IsAnimationClipPlaying(string name, int layerIdx)
-    {
-        return animator.GetCurrentAnimatorStateInfo(layerIdx).IsName(name) && animator.GetCurrentAnimatorStateInfo(layerIdx).normalizedTime < 1f;
-    }
 
     private void PlayerAnim()
     {
@@ -181,10 +111,8 @@ public class PlayerCtrl : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && attackCor == null && nowWeapon != null)
         {
-            attackCor = StartCoroutine(PunchCor(0, maxAttackComboNum));
+            attackCor = StartCoroutine(AttackCor(0, maxAttackComboNum));
         }
-        if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y == 0)
-            animator.SetTrigger("Jump");
 
 
         //IK 연습
@@ -202,7 +130,7 @@ public class PlayerCtrl : MonoBehaviour
                 if (touchables[i].gameObject == nowWeapon)
                     continue;
 
-                if (IsTargetInSight(touchables[i].transform, headTr, 30f))
+                if (IsTargetInSight(touchables[i].transform, headTr, 60f))
                 {
                     if(idx == -1)
                     {
@@ -245,6 +173,59 @@ public class PlayerCtrl : MonoBehaviour
         }
         //
     }
+
+    private IEnumerator AttackCor(int idx, int maxComboCnt)
+    {
+        bool nextCombo = false;
+
+        nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(true);
+        animator.SetLayerWeight(1, 1);
+        animator.SetTrigger("Attack" + idx.ToString());
+        yield return new WaitUntil(() => IsAnimationClipPlaying("Attack" + idx.ToString(), 1) == true);
+        while (true)
+        {
+            yield return null;
+            if (Input.GetMouseButton(0) && idx < maxAttackComboNum)
+            {
+                nextCombo = true;
+            }
+            if (animator.GetCurrentAnimatorStateInfo(1).normalizedTime >= 0.95f)
+                break;
+        }
+        if (nextCombo)
+        {
+            attackCor = StartCoroutine(AttackCor(idx + 1, maxAttackComboNum));
+            yield break;
+        }
+        else
+        {
+            nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
+            yield return StartCoroutine(LerpAnimationLayer(1f, 0, 1, 0.25f));
+            animator.SetTrigger("AttackIdle");
+            attackCor = null;
+        }
+    }
+
+    //애니메이션 선형보간(레이어 지정)
+    private IEnumerator LerpAnimationLayer(float start, float end, int idx, float duration)
+    {
+        float dT = 0;
+        animator.SetLayerWeight(1, start);
+        while (dT < duration)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            animator.SetLayerWeight(idx, Mathf.Lerp(start, end, dT / duration));
+        }
+        animator.SetLayerWeight(1, end);
+    }
+
+    //애니메이션 실행중인지 참조
+    private bool IsAnimationClipPlaying(string name, int layerIdx)
+    {
+        return animator.GetCurrentAnimatorStateInfo(layerIdx).IsName(name) && animator.GetCurrentAnimatorStateInfo(layerIdx).normalizedTime < 1f;
+    }
+
 
     void OnAnimatorIK()
     {
@@ -314,7 +295,12 @@ public class PlayerCtrl : MonoBehaviour
         {
             foreach (var entity in colliders)
             {
-                Debug.Log(entity.name);
+                if(IsTargetInSight(entity.transform, transform, weapon.attackDegree) 
+                    && entity.transform.IsChildOf(weaponTr) == false
+                    && entity.GetComponent<PlayerCtrl>() is null)
+                {
+                    Debug.Log(entity.name);
+                }
             }
         }
     }

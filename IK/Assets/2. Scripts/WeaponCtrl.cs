@@ -7,6 +7,7 @@ public class WeaponCtrl : MonoBehaviour
     [Header("Blade Attribute")]
     public float damage;
     public float attackDist;
+    public float attackDegree;
 
     [Header("Blade trail")]
     public GameObject top;
@@ -86,5 +87,9 @@ public class WeaponCtrl : MonoBehaviour
         trailMesh.transform.eulerAngles = Vector3.zero;
     }
 
-
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, attackDist);
+    }
 }

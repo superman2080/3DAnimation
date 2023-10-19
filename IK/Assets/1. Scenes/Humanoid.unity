@@ -176,7 +176,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 44d8ce73570e38b41901fd4a7b2a2f62, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -630,7 +630,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 44d8ce73570e38b41901fd4a7b2a2f62, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1109,7 +1109,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 760137684448329000}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.01730328
   m_Height: 0.33249763
@@ -1354,7 +1354,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 760137684448329000}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.047888458, y: 1.0673448, z: 0.012573922}
@@ -2154,12 +2154,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dcf6a7a9c95ad341abdd48fd832edc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 0
-  attackDist: 0
+  damage: 10
+  attackDist: 1.5
+  attackDegree: 180
   top: {fileID: 353342972}
   bottom: {fileID: 1551602829}
   trailMesh: {fileID: 461492274}
-  maxTrailFrame: 5
+  maxTrailFrame: 15
 --- !u!4 &4114525540928286773
 Transform:
   m_ObjectHideFlags: 0
@@ -3417,7 +3418,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 760137684448329000}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.28429922, y: 0.10328293, z: 0.053645752}
