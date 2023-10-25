@@ -13,6 +13,8 @@ public class PlayerCtrl : MonoBehaviour
     [Range(0.5f, 2.5f)]
     public float mouseSensation;
     public float speed;
+    [Range(1, 3)]
+    public float dashSpeedMag;
     public Transform mouseTr;
     public Transform lookAt;
     public Transform headTr;
@@ -29,6 +31,7 @@ public class PlayerCtrl : MonoBehaviour
     public GameObject nowWeapon;
 
     private readonly int maxAttackComboNum = 2;
+    private readonly int attackLayer = 1;   //공격 애니메이션 레이어
     private Transform rightHandObj;     //집을 오브젝트
 
     private bool canMove = true;
@@ -58,6 +61,8 @@ public class PlayerCtrl : MonoBehaviour
         {
             dir.x = Input.GetAxis("Horizontal");
             dir.z = Input.GetAxis("Vertical");
+            if (Input.GetKey(KeyCode.LeftShift) && canMove == true)
+                dir *= dashSpeedMag;
             transform.Translate(dir * Time.deltaTime * speed);
         }
         //rb.velocity += dir * Time.deltaTime * speed;
@@ -105,6 +110,7 @@ public class PlayerCtrl : MonoBehaviour
         //블렌드 애니메이션 연습
         animator.SetFloat("Vertical", Input.GetAxis("Vertical"));
         animator.SetFloat("Horizontal", Input.GetAxis("Horizontal"));
+        animator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift));
         //
 
         //애니메이션 레이어 연습
@@ -179,45 +185,45 @@ public class PlayerCtrl : MonoBehaviour
         bool nextCombo = false;
 
         nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(true);
-        animator.SetLayerWeight(1, 1);
+        animator.SetLayerWeight(attackLayer, 1);
         animator.SetTrigger("Attack" + idx.ToString());
-        yield return new WaitUntil(() => IsAnimationClipPlaying("Attack" + idx.ToString(), 1) == true);
+        yield return new WaitUntil(() => IsAnimationClipPlaying("Attack" + idx.ToString(), attackLayer) == true);
         while (true)
         {
             yield return null;
-            if (Input.GetMouseButton(0) && idx < maxAttackComboNum)
+            if (Input.GetMouseButton(0) && idx < maxComboCnt)
             {
                 nextCombo = true;
             }
-            if (animator.GetCurrentAnimatorStateInfo(1).normalizedTime >= 0.95f)
+            if (animator.GetCurrentAnimatorStateInfo(attackLayer).normalizedTime >= 0.95f)
                 break;
         }
         if (nextCombo)
         {
-            attackCor = StartCoroutine(AttackCor(idx + 1, maxAttackComboNum));
+            attackCor = StartCoroutine(AttackCor(idx + 1, maxComboCnt));
             yield break;
         }
         else
         {
             nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
-            yield return StartCoroutine(LerpAnimationLayer(1f, 0, 1, 0.25f));
+            yield return StartCoroutine(LerpAnimationLayer(1f, 0, attackLayer, 0.25f));
             animator.SetTrigger("AttackIdle");
             attackCor = null;
         }
     }
 
     //애니메이션 선형보간(레이어 지정)
-    private IEnumerator LerpAnimationLayer(float start, float end, int idx, float duration)
+    private IEnumerator LerpAnimationLayer(float start, float end, int layerIdx, float duration)
     {
         float dT = 0;
-        animator.SetLayerWeight(1, start);
+        animator.SetLayerWeight(layerIdx, start);
         while (dT < duration)
         {
             dT += Time.deltaTime;
             yield return null;
-            animator.SetLayerWeight(idx, Mathf.Lerp(start, end, dT / duration));
+            animator.SetLayerWeight(layerIdx, Mathf.Lerp(start, end, dT / duration));
         }
-        animator.SetLayerWeight(1, end);
+        animator.SetLayerWeight(layerIdx, end);
     }
 
     //애니메이션 실행중인지 참조
