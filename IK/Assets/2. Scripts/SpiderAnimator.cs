@@ -1,36 +1,39 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SpiderAnimator : MonoBehaviour
 {
-    
+    private const int legLength = 4;
+    public float speed;
     public float maxLegDist;
     public Transform body;
     //현재 다리가 가리킬 타겟 트랜스폼
-    public Transform[] legTarget;
+    public Transform[] legTarget = new Transform[legLength];
 
     //레이캐스팅 트랜스폼
-    public Transform[] legRayTr;
+    public Transform[] legRayTr = new Transform[legLength];
 
     //마지막 다리 위치
-    private Vector3[] lastLegPos = new Vector3[4];
+    private Vector3[] lastLegPos = new Vector3[legLength];
 
     //이동할 다리 위치
-    private Vector3[] moveToLegPos = new Vector3[4];
+    private Vector3[] moveToLegPos = new Vector3[legLength];
 
     //현재 코루틴 실행중인가
-    private Coroutine[] legCor = new Coroutine[4];
+    private Coroutine[] legCor = new Coroutine[legLength];
     private float smoothness = 10f;
-    private float[] step = { 0.5f, 0.5f, 1f, 1f };
-    private bool isFirstStep = true;
+    private int[] rPair = { 0, 1};
+    private int[] lPair = { 3, 2};
+
     private float rotY;
     private Vector3 lastBodyUp;
 
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < legTarget.Length; i++)
+        for (int i = 0; i < legLength; i++)
         {
             lastLegPos[i] = legTarget[i].position;
         }
@@ -40,17 +43,17 @@ public class SpiderAnimator : MonoBehaviour
     private void Update()
     {
         float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal") * 0.05f;
+        float h = Input.GetAxis("Horizontal") * 0.15f;
         if (v == 0 && h == 0)
         {
-            isFirstStep = true;
+            //isFirstStep = true;
             //for (int i = 0; i < legTarget.Length; i++)
             //{
             //    if ((legTarget[i].position - moveToLegPos[i]).magnitude >= 0.01f && legCor[i] == null)
             //        legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
             //}
         }
-        transform.Translate(0, 0, v * maxLegDist * Time.deltaTime);
+        transform.Translate(0, 0, v * speed * Time.deltaTime);
         rotY = Mathf.Repeat(rotY + h, 360);
         
         
@@ -64,12 +67,12 @@ public class SpiderAnimator : MonoBehaviour
 
     private void SpiderAnim()
     {
-        for (int i = 0; i < legTarget.Length; i++)
+        for (int i = 0; i < legLength; i++)
         {
             legTarget[i].position = lastLegPos[i];
         }
 
-        for (int i = 0; i < legTarget.Length; i++)
+        for (int i = 0; i < legLength; i++)
         {
             if (Physics.Raycast(legRayTr[i].position, legRayTr[i].transform.up, out RaycastHit hit, float.PositiveInfinity))
             {
@@ -77,27 +80,52 @@ public class SpiderAnimator : MonoBehaviour
             }
         }
 
-        if (isFirstStep)
+        for (int i = 0; i < legLength; i++)
         {
-            for (int i = 0; i < legTarget.Length; i++)
+            if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist
+                && legCor[i] == null
+                && IsOpperatingOppositeLegCor(i) == false)
             {
-                if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
+                if(Array.IndexOf(rPair, i) != -1)
                 {
-                    legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-                    isFirstStep = false;
+                    foreach (var legIdx in rPair)
+                    {
+                        legCor[legIdx] = StartCoroutine(LegIK(legIdx, moveToLegPos[legIdx]));
+                    }
+                    break;
+                }
+                else if (Array.IndexOf(lPair, i) != -1)
+                {
+                    foreach (var legIdx in lPair)
+                    {
+                        legCor[legIdx] = StartCoroutine(LegIK(legIdx, moveToLegPos[legIdx]));
+                    }
+                    break;
                 }
             }
         }
-        else
-        {
-            for (int i = 0; i < legTarget.Length; i++)
-            {
-                if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
-                {
-                    legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-                }
-            }
-        }
+
+        //if (isFirstStep)
+        //{
+        //    for (int i = 0; i < legTarget.Length; i++)
+        //    {
+        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
+        //        {
+        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+        //            isFirstStep = false;
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //    for (int i = 0; i < legTarget.Length; i++)
+        //    {
+        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
+        //        {
+        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
+        //        }
+        //    }
+        //}
 
 
         //for (int i = 0; i < legTarget.Length; i++)
@@ -121,13 +149,15 @@ public class SpiderAnimator : MonoBehaviour
         //    }
         //}
 
+        
+
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
         //body.up = Vector3.Cross(v1, v2).normalized;
         Vector3 normal = Vector3.Cross(v1, v2).normalized;
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
         //up = Quaternion.AngleAxis(rotY, Vector3.up) * up;
-        transform.up = up;
+        transform.up = Vector3.Cross(v1, v2).normalized;
         //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
         transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
 
@@ -151,16 +181,39 @@ public class SpiderAnimator : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        for (int i = 0; i < moveToLegPos.Length; i++)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(moveToLegPos[i], 0.05f);
-        }
-
-        for (int i = 0; i < legTarget.Length; i++)
+        for (int i = 0; i < legLength; i++)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(legTarget[i].position, 0.05f);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(moveToLegPos[i], 0.05f);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(legTarget[i].position, moveToLegPos[i]);
+        }
+    }
+
+    private bool IsOpperatingOppositeLegCor(int idx)
+    {
+        if(Array.IndexOf(rPair, idx) != -1)
+        {
+            //오른쪽 다리일 때(왼쪽 쌍 체크)
+            foreach (var legIdx in lPair)
+            {
+                if (legCor[legIdx] != null)
+                    return true;
+            }
+            return false;
+        }
+        else
+        {
+            foreach (var legIdx in rPair)
+            {
+                if (legCor[legIdx] != null)
+                    return true;
+            }
+            return false;
         }
     }
 }
