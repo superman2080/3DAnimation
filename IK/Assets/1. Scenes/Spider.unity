@@ -447,7 +447,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 774139696}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.030498724, y: -0.000000007450581, z: 0.023242554}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -501,19 +501,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 877669783}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeda7bfbf984f2a4da5ab4b8967b115d, type: 3}
+  m_Script: {fileID: 11500000, guid: 796b75e345bd64d47a31edd757bd2670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Weight: 1
   m_Data:
-    m_Root: {fileID: 312073003692351143}
-    m_Mid: {fileID: 312073003692351141}
+    m_Root: {fileID: 312073003692351137}
     m_Tip: {fileID: 312073003692351131}
     m_Target: {fileID: 197145267}
-    m_Hint: {fileID: 0}
-    m_TargetPositionWeight: 1
-    m_TargetRotationWeight: 1
-    m_HintWeight: 1
+    m_ChainRotationWeight: 1
+    m_TipRotationWeight: 1
+    m_MaxIterations: 15
+    m_Tolerance: 0.0001
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
 --- !u!1 &881558317
@@ -592,14 +591,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 881558317}
-  m_LocalRotation: {x: 0.8660255, y: -0, z: -0, w: 0.49999988}
-  m_LocalPosition: {x: 0, y: 0.009999998, z: 0.009000001}
-  m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 1, y: 0.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 312073003692351107}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
+  m_Father: {fileID: 312073003692351113}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &941337977
 GameObject:
   m_ObjectHideFlags: 0
@@ -705,19 +704,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1081909848}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeda7bfbf984f2a4da5ab4b8967b115d, type: 3}
+  m_Script: {fileID: 11500000, guid: 796b75e345bd64d47a31edd757bd2670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Weight: 1
   m_Data:
-    m_Root: {fileID: 312073003692351167}
-    m_Mid: {fileID: 312073003692351165}
+    m_Root: {fileID: 312073003692351161}
     m_Tip: {fileID: 312073003692351155}
     m_Target: {fileID: 1158288519}
-    m_Hint: {fileID: 0}
-    m_TargetPositionWeight: 1
-    m_TargetRotationWeight: 1
-    m_HintWeight: 1
+    m_ChainRotationWeight: 1
+    m_TipRotationWeight: 1
+    m_MaxIterations: 15
+    m_Tolerance: 0.0001
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
 --- !u!1 &1158288518
@@ -794,19 +792,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1221071611}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeda7bfbf984f2a4da5ab4b8967b115d, type: 3}
+  m_Script: {fileID: 11500000, guid: 796b75e345bd64d47a31edd757bd2670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Weight: 1
   m_Data:
-    m_Root: {fileID: 312073003692351159}
-    m_Mid: {fileID: 312073003692351157}
+    m_Root: {fileID: 312073003692351153}
     m_Tip: {fileID: 312073003692351147}
     m_Target: {fileID: 2101458002}
-    m_Hint: {fileID: 0}
-    m_TargetPositionWeight: 1
-    m_TargetRotationWeight: 1
-    m_HintWeight: 1
+    m_ChainRotationWeight: 1
+    m_TipRotationWeight: 1
+    m_MaxIterations: 15
+    m_Tolerance: 0.0001
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
 --- !u!1 &2006867378
@@ -852,19 +849,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 2006867378}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeda7bfbf984f2a4da5ab4b8967b115d, type: 3}
+  m_Script: {fileID: 11500000, guid: 796b75e345bd64d47a31edd757bd2670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Weight: 1
   m_Data:
-    m_Root: {fileID: 312073003692351151}
-    m_Mid: {fileID: 312073003692351149}
+    m_Root: {fileID: 312073003692351145}
     m_Tip: {fileID: 312073003692351139}
     m_Target: {fileID: 2060382261}
-    m_Hint: {fileID: 0}
-    m_TargetPositionWeight: 1
-    m_TargetRotationWeight: 1
-    m_HintWeight: 1
+    m_ChainRotationWeight: 1
+    m_TipRotationWeight: 1
+    m_MaxIterations: 15
+    m_Tolerance: 0.0001
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
 --- !u!1 &2017545944
@@ -957,7 +953,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2017545944}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.125, y: -0.835, z: 2.008}
+  m_LocalPosition: {x: 0, y: -0.35, z: 2.008}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1033,8 +1029,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 312073003692573411}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0.1, z: 0}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -0, y: 0.125, z: 0}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1043,10 +1039,9 @@ Transform:
   - {fileID: 312073003692351123}
   - {fileID: 312073003692351127}
   - {fileID: 312073003692351119}
-  - {fileID: 881558320}
   m_Father: {fileID: 312073003692351113}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!4 &312073003692351113
 Transform:
   m_ObjectHideFlags: 0
@@ -1062,6 +1057,7 @@ Transform:
   - {fileID: 312073003692351117}
   - {fileID: 312073003692351107}
   - {fileID: 774139698}
+  - {fileID: 881558320}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1088,7 +1084,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 312073003692573421}
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0.00001532957, y: 0.0039682984, z: -0.000032424927}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1776,6 +1772,7 @@ GameObject:
   - component: {fileID: 312073003699843420}
   - component: {fileID: 312073003699843421}
   - component: {fileID: 312073003699843422}
+  - component: {fileID: 312073003699843423}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -2009,7 +2006,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0.3
-  maxLegDist: 0.1
+  maxLegDist: 0.2
   body: {fileID: 312073003692351107}
   legTarget:
   - {fileID: 1158288519}
@@ -2037,6 +2034,51 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &312073003699843423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 312073003692573417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2d8418b0b9634b1892b0268dd9c2743, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boneShape: 1
+  drawBones: 1
+  drawTripods: 0
+  boneSize: 1
+  tripodSize: 1
+  boneColor: {r: 0, g: 0, b: 1, a: 0.5}
+  m_Transforms:
+  - {fileID: 312073003692351119}
+  - {fileID: 312073003692351163}
+  - {fileID: 312073003692351161}
+  - {fileID: 312073003692351167}
+  - {fileID: 312073003692351165}
+  - {fileID: 312073003692351155}
+  - {fileID: 312073003692351153}
+  - {fileID: 312073003692351159}
+  - {fileID: 312073003692351157}
+  - {fileID: 312073003692351147}
+  - {fileID: 312073003692351145}
+  - {fileID: 312073003692351151}
+  - {fileID: 312073003692351149}
+  - {fileID: 312073003692351139}
+  - {fileID: 312073003692351137}
+  - {fileID: 312073003692351143}
+  - {fileID: 312073003692351141}
+  - {fileID: 312073003692351131}
+  - {fileID: 312073003692351129}
+  - {fileID: 312073003692351115}
+  - {fileID: 312073003692351135}
+  - {fileID: 312073003692351133}
+  - {fileID: 312073003692351123}
+  - {fileID: 312073003692351121}
+  - {fileID: 312073003692351127}
+  - {fileID: 312073003692351125}
 --- !u!137 &312073003704078235
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 0

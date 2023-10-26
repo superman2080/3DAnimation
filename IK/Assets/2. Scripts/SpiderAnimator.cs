@@ -55,8 +55,6 @@ public class SpiderAnimator : MonoBehaviour
         }
         transform.Translate(0, 0, v * speed * Time.deltaTime);
         rotY = Mathf.Repeat(rotY + h, 360);
-        
-        
     }
 
     // Update is called once per frame
@@ -80,6 +78,7 @@ public class SpiderAnimator : MonoBehaviour
             }
         }
 
+        //Zigzag pattern
         for (int i = 0; i < legLength; i++)
         {
             if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist
@@ -158,10 +157,10 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
         //up = Quaternion.AngleAxis(rotY, Vector3.up) * up;
         transform.up = Vector3.Cross(v1, v2).normalized;
-        //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
-        transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
+        //transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
 
-        //transform.rotation = Quaternion.LookRotation(transform.forward, up);
+        //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
+        transform.rotation = Quaternion.LookRotation(transform.forward, up);
         lastBodyUp = up;
     }
 
