@@ -8,7 +8,8 @@ public class SpiderAnimator : MonoBehaviour
     private const int legLength = 4;
     public float speed;
     public float maxLegDist;
-    public Transform body;
+    [Range(0.05f, 0.5f)]
+    public float bodyOffset;
     //현재 다리가 가리킬 타겟 트랜스폼
     public Transform[] legTarget = new Transform[legLength];
 
@@ -81,11 +82,24 @@ public class SpiderAnimator : MonoBehaviour
         //Zigzag pattern
         for (int i = 0; i < legLength; i++)
         {
+            //보폭 이상으로 이동했을 때 다리 이동
             if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist
                 && legCor[i] == null
                 && IsOpperatingOppositeLegCor(i) == false)
             {
-                if(Array.IndexOf(rPair, i) != -1)
+                //만약 맞은편 다리가 이동 중이라면
+                //if()
+                //{
+                //    if(Array.IndexOf(rPair, i) != -1)
+                //    {
+
+                //    }
+                //    else
+                //    {
+
+                //    }
+                //}
+                if (Array.IndexOf(rPair, i) != -1)
                 {
                     foreach (var legIdx in rPair)
                     {
@@ -103,64 +117,35 @@ public class SpiderAnimator : MonoBehaviour
                 }
             }
         }
-
-        //if (isFirstStep)
-        //{
-        //    for (int i = 0; i < legTarget.Length; i++)
-        //    {
-        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
-        //        {
-        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-        //            isFirstStep = false;
-        //        }
-        //    }
-        //}
-        //else
-        //{
-        //    for (int i = 0; i < legTarget.Length; i++)
-        //    {
-        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
-        //        {
-        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-        //        }
-        //    }
-        //}
-
-
-        //for (int i = 0; i < legTarget.Length; i++)
-        //{
-        //    if (isFirstStep)
-        //    {
-        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist * step[i] && legCor[i] == null)
-        //        {
-        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-        //            step[i] = step[i] == 1 ? 0.5f : 1f;
-        //            isFirstStep = false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (Vector3.Distance(lastLegPos[i], moveToLegPos[i]) > maxLegDist && legCor[i] == null)
-        //        {
-        //            legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-        //            step[i] = step[i] == 1 ? 0.5f : 1f;
-        //        }
-        //    }
-        //}
-
         
-
+        //기울기
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
         //body.up = Vector3.Cross(v1, v2).normalized;
         Vector3 normal = Vector3.Cross(v1, v2).normalized;
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
         //up = Quaternion.AngleAxis(rotY, Vector3.up) * up;
-        transform.up = Vector3.Cross(v1, v2).normalized;
+        transform.up = up;
+        //
+
+        //일정 높이로 걷기
+        float averageY = 0f;
+        foreach (var leg in legRayTr)
+        {
+            if (Physics.Raycast(leg.position, leg.transform.up, out RaycastHit hit, float.PositiveInfinity))
+            {
+                averageY += hit.point.y;
+            }
+        }
+        averageY /= legLength;
+
+        transform.position = new Vector3(transform.position.x, averageY + bodyOffset, transform.position.z);
+        //
+
         //transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
 
         //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
-        transform.rotation = Quaternion.LookRotation(transform.forward, up);
+        //transform.rotation = Quaternion.LookRotation(transform.forward, up);
         lastBodyUp = up;
     }
 
