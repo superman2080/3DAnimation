@@ -121,11 +121,12 @@ public class SpiderAnimator : MonoBehaviour
         //기울기
         Vector3 v1 = legTarget[0].position - legTarget[1].position;
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
-        //body.up = Vector3.Cross(v1, v2).normalized;
         Vector3 normal = Vector3.Cross(v1, v2).normalized;
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
-        //up = Quaternion.AngleAxis(rotY, Vector3.up) * up;
+        //transform.eulerAngles = new Vector3.AngleAxis(rotY, Vector3.up) * up;
         transform.up = up;
+        lastBodyUp = up;
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
         //
 
         //일정 높이로 걷기
@@ -142,11 +143,10 @@ public class SpiderAnimator : MonoBehaviour
         transform.position = new Vector3(transform.position.x, averageY + bodyOffset, transform.position.z);
         //
 
-        //transform.localEulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
 
         //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
         //transform.rotation = Quaternion.LookRotation(transform.forward, up);
-        lastBodyUp = up;
+
     }
 
     private IEnumerator LegIK(int idx, Vector3 moveTo)
