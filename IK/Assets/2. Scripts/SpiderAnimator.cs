@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class SpiderAnimator : MonoBehaviour
@@ -10,6 +11,7 @@ public class SpiderAnimator : MonoBehaviour
     public float maxLegDist;
     [Range(0.05f, 0.5f)]
     public float bodyOffset;
+    public Transform body;
     //현재 다리가 가리킬 타겟 트랜스폼
     public Transform[] legTarget = new Transform[legLength];
 
@@ -54,8 +56,9 @@ public class SpiderAnimator : MonoBehaviour
             //        legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
             //}
         }
-        transform.Translate(0, 0, v * speed * Time.deltaTime);
-        rotY = Mathf.Repeat(rotY + h, 360);
+        transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
+        rotY = Mathf.Repeat(rotY - h, 360f);
+
     }
 
     // Update is called once per frame
@@ -87,18 +90,6 @@ public class SpiderAnimator : MonoBehaviour
                 && legCor[i] == null
                 && IsOpperatingOppositeLegCor(i) == false)
             {
-                //만약 맞은편 다리가 이동 중이라면
-                //if()
-                //{
-                //    if(Array.IndexOf(rPair, i) != -1)
-                //    {
-
-                //    }
-                //    else
-                //    {
-
-                //    }
-                //}
                 if (Array.IndexOf(rPair, i) != -1)
                 {
                     foreach (var legIdx in rPair)
@@ -123,22 +114,20 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 v2 = legTarget[2].position - legTarget[3].position;
         Vector3 normal = Vector3.Cross(v1, v2).normalized;
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
-        //transform.eulerAngles = new Vector3.AngleAxis(rotY, Vector3.up) * up;
+
+        Debug.Log(up.normalized);
         transform.up = up;
+        body.localRotation = Quaternion.Euler(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
         lastBodyUp = up;
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, rotY, transform.eulerAngles.z);
         //
 
         //일정 높이로 걷기
         float averageY = 0f;
-        foreach (var leg in legRayTr)
+        foreach (var pos in moveToLegPos)
         {
-            if (Physics.Raycast(leg.position, leg.transform.up, out RaycastHit hit, float.PositiveInfinity))
-            {
-                averageY += hit.point.y;
-            }
+            averageY += pos.y;
         }
-        averageY /= legLength;
+        averageY = averageY / legLength;
 
         transform.position = new Vector3(transform.position.x, averageY + bodyOffset, transform.position.z);
         //
