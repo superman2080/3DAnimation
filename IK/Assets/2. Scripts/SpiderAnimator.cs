@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class SpiderAnimator : MonoBehaviour
@@ -26,45 +27,64 @@ public class SpiderAnimator : MonoBehaviour
 
     //현재 코루틴 실행중인가
     private Coroutine[] legCor = new Coroutine[legLength];
-    private float smoothness = 10f;
+    public float smoothness = 10f;
     private int[] rPair = { 0, 1};
     private int[] lPair = { 3, 2};
 
+    private Rigidbody rb;
     private float rotY;
     private Vector3 lastBodyUp;
 
     // Start is called before the first frame update
     void Start()
     {
+        rb = gameObject.GetComponent<Rigidbody>();
         for (int i = 0; i < legLength; i++)
         {
             lastLegPos[i] = legTarget[i].position;
         }
         lastBodyUp = transform.up;
+
+        //StartCoroutine(MoveToPosition(new Vector3(10, 0, 10), speed, 1f));
     }
 
     private void Update()
     {
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal") * 0.15f;
-        if (v == 0 && h == 0)
-        {
-            //isFirstStep = true;
-            //for (int i = 0; i < legTarget.Length; i++)
-            //{
-            //    if ((legTarget[i].position - moveToLegPos[i]).magnitude >= 0.01f && legCor[i] == null)
-            //        legCor[i] = StartCoroutine(LegIK(i, moveToLegPos[i]));
-            //}
-        }
         transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
         rotY = Mathf.Repeat(rotY - h, 360f);
-
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
         SpiderAnim();
+    }
+
+    public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
+    {
+        float originY = rotY;
+        float lookAtY = Mathf.Atan2(pos.x - transform.position.x, pos.z - transform.position.z) * Mathf.Rad2Deg;
+        float dT = 0;
+        while (true)
+        {
+            if(rotY == lookAtY)
+                break;
+ 
+            dT += Time.deltaTime;
+            yield return null;
+            rotY = Mathf.Lerp(originY, lookAtY, dT * rotSpeed);
+        }
+        while (true)
+        {
+            transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime);
+            yield return null;
+            if((pos - transform.position).magnitude < 0.5f)
+            {
+                break;
+            }
+        }
     }
 
     private void SpiderAnim()
@@ -115,7 +135,6 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 normal = Vector3.Cross(v1, v2).normalized;
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
 
-        Debug.Log(up.normalized);
         transform.up = up;
         body.localRotation = Quaternion.Euler(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
         lastBodyUp = up;
