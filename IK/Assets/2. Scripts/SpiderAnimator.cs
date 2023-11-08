@@ -27,7 +27,7 @@ public class SpiderAnimator : MonoBehaviour
 
     //현재 코루틴 실행중인가
     private Coroutine[] legCor = new Coroutine[legLength];
-    public float smoothness = 10f;
+    public float smoothness = 5f;
     private int[] rPair = { 0, 1};
     private int[] lPair = { 3, 2};
 
@@ -45,7 +45,7 @@ public class SpiderAnimator : MonoBehaviour
         }
         lastBodyUp = transform.up;
 
-        //StartCoroutine(MoveToPosition(new Vector3(10, 0, 10), speed, 1f));
+        //StartCoroutine(MoveToPosition(new Vector3(-10, 0, 10), speed, 1f));
     }
 
     private void Update()
@@ -65,7 +65,8 @@ public class SpiderAnimator : MonoBehaviour
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
     {
         float originY = rotY;
-        float lookAtY = Mathf.Atan2(pos.x - transform.position.x, pos.z - transform.position.z) * Mathf.Rad2Deg;
+        float lookAtY = Mathf.Repeat(Mathf.Atan2(pos.x - transform.position.x, pos.z - transform.position.z) * Mathf.Rad2Deg + 90f, 360f);
+        Debug.Log(lookAtY);
         float dT = 0;
         while (true)
         {
@@ -150,10 +151,6 @@ public class SpiderAnimator : MonoBehaviour
 
         transform.position = new Vector3(transform.position.x, averageY + bodyOffset, transform.position.z);
         //
-
-
-        //body.localEulerAngles = new Vector3(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
-        //transform.rotation = Quaternion.LookRotation(transform.forward, up);
 
     }
 
