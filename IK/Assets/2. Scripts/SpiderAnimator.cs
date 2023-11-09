@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class SpiderAnimator : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class SpiderAnimator : MonoBehaviour
     private Rigidbody rb;
     private float rotY;
     private Vector3 lastBodyUp;
+    private NavMeshAgent nav;
 
     // Start is called before the first frame update
     void Start()
@@ -45,7 +47,8 @@ public class SpiderAnimator : MonoBehaviour
         }
         lastBodyUp = transform.up;
 
-        //StartCoroutine(MoveToPosition(new Vector3(-10, 0, 10), speed, 1f));
+        nav = gameObject.GetComponent<NavMeshAgent>();
+        StartCoroutine(MoveToPosition(new Vector3(1, 0, 3), speed, 1f));
     }
 
     private void Update()
@@ -64,9 +67,19 @@ public class SpiderAnimator : MonoBehaviour
 
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
     {
+        NavMeshPath path = new NavMeshPath();
+        nav.CalculatePath(pos, path);
+        Debug.Log(path.status);
+        if(path.status != NavMeshPathStatus.PathComplete)
+        {
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(pos, out hit, 100, -1))
+            {
+                pos = hit.position;
+            }
+        }
         float originY = rotY;
-        float lookAtY = Mathf.Repeat(Mathf.Atan2(pos.x - transform.position.x, pos.z - transform.position.z) * Mathf.Rad2Deg + 90f, 360f);
-        Debug.Log(lookAtY);
+        float lookAtY = Mathf.Atan2(-(pos.z - transform.position.z), -(pos.x - transform.position.x)) * Mathf.Rad2Deg + 90;
         float dT = 0;
         while (true)
         {
@@ -81,7 +94,7 @@ public class SpiderAnimator : MonoBehaviour
         {
             transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime);
             yield return null;
-            if((pos - transform.position).magnitude < 0.5f)
+            if((pos - transform.position).magnitude < 0.25f)
             {
                 break;
             }
