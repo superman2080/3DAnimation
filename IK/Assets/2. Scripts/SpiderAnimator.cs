@@ -5,13 +5,14 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEditor.PlayerSettings;
 
 public class SpiderAnimator : MonoBehaviour
 {
     private const int legLength = 4;
     public float speed;
     public float maxLegDist;
-    [Range(0.05f, 0.5f)]
+    [Range(0.05f, 5f)]
     public float bodyOffset;
     public Transform body;
     //현재 다리가 가리킬 타겟 트랜스폼
@@ -35,7 +36,8 @@ public class SpiderAnimator : MonoBehaviour
     private Rigidbody rb;
     private float rotY;
     private Vector3 lastBodyUp;
-    private NavMeshAgent nav;
+
+    private GameObject target;
 
     // Start is called before the first frame update
     void Start()
@@ -47,16 +49,16 @@ public class SpiderAnimator : MonoBehaviour
         }
         lastBodyUp = transform.up;
 
-        nav = gameObject.GetComponent<NavMeshAgent>();
-        StartCoroutine(MoveToPosition(new Vector3(1, 0, 3), speed, 1f));
+        target = GameObject.Find("Target");
+        StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
     }
 
     private void Update()
     {
-        float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal") * 0.15f;
-        transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
-        rotY = Mathf.Repeat(rotY - h, 360f);
+        //float v = Input.GetAxis("Vertical");
+        //float h = Input.GetAxis("Horizontal") * 0.15f;
+        //transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
+        //rotY = Mathf.Repeat(rotY - h, 360f);
     }
 
     // Update is called once per frame
@@ -68,16 +70,14 @@ public class SpiderAnimator : MonoBehaviour
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
     {
         NavMeshPath path = new NavMeshPath();
-        nav.CalculatePath(pos, path);
-        Debug.Log(path.status);
-        if(path.status != NavMeshPathStatus.PathComplete)
+
+        if (Physics.Raycast(pos, Vector3.down, out RaycastHit hit))
         {
-            NavMeshHit hit;
-            if (NavMesh.SamplePosition(pos, out hit, 100, -1))
-            {
-                pos = hit.position;
-            }
+            pos = hit.point;
         }
+        else
+            yield break;
+
         float originY = rotY;
         float lookAtY = Mathf.Atan2(-(pos.z - transform.position.z), -(pos.x - transform.position.x)) * Mathf.Rad2Deg + 90;
         float dT = 0;
@@ -92,9 +92,9 @@ public class SpiderAnimator : MonoBehaviour
         }
         while (true)
         {
-            transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime);
+            transform.Translate(new Vector3(Mathf.Sin(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime));
             yield return null;
-            if((pos - transform.position).magnitude < 0.25f)
+            if((new Vector3(pos.x, GetBodyOffsetY(), pos.z) - transform.position).magnitude < 0.5f)
             {
                 break;
             }
@@ -110,7 +110,7 @@ public class SpiderAnimator : MonoBehaviour
 
         for (int i = 0; i < legLength; i++)
         {
-            if (Physics.Raycast(legRayTr[i].position, legRayTr[i].transform.up, out RaycastHit hit, float.PositiveInfinity))
+            if (Physics.Raycast(legRayTr[i].position, legRayTr[i].transform.up, out RaycastHit hit, float.PositiveInfinity, 1 << LayerMask.NameToLayer("Ground")))
             {
                 moveToLegPos[i] = hit.point;
             }
@@ -154,15 +154,8 @@ public class SpiderAnimator : MonoBehaviour
         lastBodyUp = up;
         //
 
-        //일정 높이로 걷기
-        float averageY = 0f;
-        foreach (var pos in moveToLegPos)
-        {
-            averageY += pos.y;
-        }
-        averageY = averageY / legLength;
 
-        transform.position = new Vector3(transform.position.x, averageY + bodyOffset, transform.position.z);
+        transform.position = new Vector3(transform.position.x, GetBodyOffsetY(), transform.position.z);
         //
 
     }
@@ -177,6 +170,8 @@ public class SpiderAnimator : MonoBehaviour
             lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
             yield return new WaitForFixedUpdate();
         }
+        if (PlayerCtrl.isCameraShake == false)
+            StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
     }
@@ -217,5 +212,17 @@ public class SpiderAnimator : MonoBehaviour
             }
             return false;
         }
+    }
+
+    private float GetBodyOffsetY()
+    {
+        float averageY = 0f;
+        foreach (var pos in moveToLegPos)
+        {
+            averageY += pos.y;
+        }
+        averageY = averageY / legLength;
+
+        return averageY + bodyOffset;
     }
 }

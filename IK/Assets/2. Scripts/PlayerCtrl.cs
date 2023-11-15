@@ -6,6 +6,7 @@ using static UnityEditor.Progress;
 
 public class PlayerCtrl : MonoBehaviour
 {
+    public static bool isCameraShake = false;
     public Animator animator;
 
 
@@ -252,6 +253,7 @@ public class PlayerCtrl : MonoBehaviour
 
     public static IEnumerator CameraShakeCor(float intense, float time)
     {
+        PlayerCtrl.isCameraShake = true;
         float dT = 0;
         float nowIntense = intense;
         Camera cam = Camera.main;
@@ -264,6 +266,7 @@ public class PlayerCtrl : MonoBehaviour
             yield return null;
         }
         cam.transform.localPosition = originPos;
+        PlayerCtrl.isCameraShake = false;
     }
 
     private bool IsTargetInSight(Transform target, Transform origin, float degree)
