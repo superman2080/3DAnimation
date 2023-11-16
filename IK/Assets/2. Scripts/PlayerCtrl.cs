@@ -253,6 +253,9 @@ public class PlayerCtrl : MonoBehaviour
 
     public static IEnumerator CameraShakeCor(float intense, float time)
     {
+        if (isCameraShake == true)
+            yield break;
+
         PlayerCtrl.isCameraShake = true;
         float dT = 0;
         float nowIntense = intense;

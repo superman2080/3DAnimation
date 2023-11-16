@@ -170,8 +170,8 @@ public class SpiderAnimator : MonoBehaviour
             lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
             yield return new WaitForFixedUpdate();
         }
-        if (PlayerCtrl.isCameraShake == false)
-            StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f));
+
+        StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
     }
