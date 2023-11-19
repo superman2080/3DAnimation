@@ -167,7 +167,7 @@ public class SpiderAnimator : MonoBehaviour
         for (int i = 1; i <= smoothness; ++i)
         {
             lastLegPos[idx] = Vector3.Lerp(origin, moveTo, i / smoothness);
-            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
+            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist * 2f;
             yield return new WaitForFixedUpdate();
         }
 
