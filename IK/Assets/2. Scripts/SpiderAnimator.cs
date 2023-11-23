@@ -49,16 +49,16 @@ public class SpiderAnimator : MonoBehaviour
         }
         lastBodyUp = transform.up;
 
-        target = GameObject.Find("Target");
-        StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
+        //target = GameObject.Find("Target");
+        //StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
     }
 
     private void Update()
     {
-        //float v = Input.GetAxis("Vertical");
-        //float h = Input.GetAxis("Horizontal") * 0.15f;
-        //transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
-        //rotY = Mathf.Repeat(rotY - h, 360f);
+        float v = Input.GetAxis("Vertical");
+        float h = Input.GetAxis("Horizontal") * 0.15f;
+        transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
+        rotY = Mathf.Repeat(rotY - h, 360f);
     }
 
     // Update is called once per frame
@@ -167,11 +167,11 @@ public class SpiderAnimator : MonoBehaviour
         for (int i = 1; i <= smoothness; ++i)
         {
             lastLegPos[idx] = Vector3.Lerp(origin, moveTo, i / smoothness);
-            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist * 2f;
+            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
             yield return new WaitForFixedUpdate();
         }
 
-        StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f));
+        //StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
     }
