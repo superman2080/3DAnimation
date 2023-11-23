@@ -150,7 +150,7 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 up = Vector3.Lerp(lastBodyUp, normal, 1f / (float)(smoothness + 1));
 
         transform.up = up;
-        //body.localRotation = Quaternion.Euler(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
+        body.localRotation = Quaternion.Euler(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
         lastBodyUp = up;
         //
 
