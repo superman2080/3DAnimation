@@ -14,6 +14,8 @@ public class SpiderAnimator : MonoBehaviour
     public float maxLegDist;
     [Range(0.05f, 5f)]
     public float bodyOffset;
+    [Range(0.05f, 0.5f)]
+    public float bodyShakingOffset;
     public Transform body;
     //현재 다리가 가리킬 타겟 트랜스폼
     public Transform[] legTarget = new Transform[legLength];
@@ -49,16 +51,16 @@ public class SpiderAnimator : MonoBehaviour
         }
         lastBodyUp = transform.up;
 
-        //target = GameObject.Find("Target");
-        //StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
+        target = GameObject.Find("Target");
+        StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
     }
 
     private void Update()
     {
-        float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal") * 0.15f;
-        transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
-        rotY = Mathf.Repeat(rotY - h, 360f);
+        //float v = Input.GetAxis("Vertical");
+        //float h = Input.GetAxis("Horizontal") * 0.15f;
+        //transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
+        //rotY = Mathf.Repeat(rotY - h, 360f);
     }
 
     // Update is called once per frame
@@ -154,6 +156,7 @@ public class SpiderAnimator : MonoBehaviour
         lastBodyUp = up;
         //
 
+        
 
         transform.position = new Vector3(transform.position.x, GetBodyOffsetY(), transform.position.z);
         //
@@ -167,11 +170,11 @@ public class SpiderAnimator : MonoBehaviour
         for (int i = 1; i <= smoothness; ++i)
         {
             lastLegPos[idx] = Vector3.Lerp(origin, moveTo, i / smoothness);
-            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist;
+            lastLegPos[idx].y += Mathf.Sin(Mathf.Lerp(0, 180, i / smoothness) * Mathf.Deg2Rad) * maxLegDist * 3f;
             yield return new WaitForFixedUpdate();
         }
 
-        //StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f));
+        StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f, false));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
     }
@@ -216,6 +219,7 @@ public class SpiderAnimator : MonoBehaviour
 
     private float GetBodyOffsetY()
     {
+
         float averageY = 0f;
         foreach (var pos in moveToLegPos)
         {
@@ -223,6 +227,16 @@ public class SpiderAnimator : MonoBehaviour
         }
         averageY = averageY / legLength;
 
-        return averageY + bodyOffset;
+        float shakeOffset = 0f;
+        foreach (var pos in legTarget)
+        {
+            shakeOffset += pos.position.y;
+        }
+        shakeOffset /= legLength;
+        shakeOffset *= bodyShakingOffset;
+
+        //averageY *= bodyShakingOffset;
+        //float shakeOffset = Mathf.Sin((Mathf.Repeat(Time.time * 3f, 2f) - 1f) * 180f * Mathf.Deg2Rad) * bodyShakingOffset;
+        return averageY + bodyOffset + shakeOffset;
     }
 }

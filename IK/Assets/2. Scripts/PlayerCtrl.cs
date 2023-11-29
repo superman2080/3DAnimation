@@ -251,20 +251,20 @@ public class PlayerCtrl : MonoBehaviour
         }
     }
 
-    public static IEnumerator CameraShakeCor(float intense, float time)
+    public static IEnumerator CameraShakeCor(float intense, float time, bool increasing)
     {
         if (isCameraShake == true)
             yield break;
 
         PlayerCtrl.isCameraShake = true;
         float dT = 0;
-        float nowIntense = intense;
+        float nowIntense = increasing ? 0 : intense;
         Camera cam = Camera.main;
         Vector3 originPos = cam.transform.localPosition;
         while(dT < time)
         {
             cam.transform.localPosition = originPos + new Vector3(UnityEngine.Random.Range(-nowIntense, nowIntense), UnityEngine. Random.Range(-nowIntense, nowIntense), 0);
-            nowIntense = Mathf.Lerp(intense, 0, dT / time);
+            nowIntense = increasing ? Mathf.Lerp(0, intense, dT / time) : Mathf.Lerp(intense, 0, dT / time);
             dT += Time.deltaTime;
             yield return null;
         }
@@ -298,7 +298,7 @@ public class PlayerCtrl : MonoBehaviour
         if (nowWeapon == null)
             return;
 
-        StartCoroutine(CameraShakeCor(0.1f, 0.1f));
+        StartCoroutine(CameraShakeCor(0.1f, 0.1f, false));
 
         WeaponCtrl weapon = nowWeapon.GetComponent<WeaponCtrl>();
 
