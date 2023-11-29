@@ -17,6 +17,7 @@ public class SpiderAnimator : MonoBehaviour
     [Range(0.05f, 0.5f)]
     public float bodyShakingOffset;
     public Transform body;
+    public Transform head;
     //현재 다리가 가리킬 타겟 트랜스폼
     public Transform[] legTarget = new Transform[legLength];
 
@@ -51,7 +52,7 @@ public class SpiderAnimator : MonoBehaviour
         }
         lastBodyUp = transform.up;
 
-        target = GameObject.Find("Target");
+        target = FindObjectOfType<PlayerCtrl>().gameObject;
         StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
     }
 
@@ -61,18 +62,20 @@ public class SpiderAnimator : MonoBehaviour
         //float h = Input.GetAxis("Horizontal") * 0.15f;
         //transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
         //rotY = Mathf.Repeat(rotY - h, 360f);
+        //Vector3 dir = (target.transform.position - transform.position).normalized;
+        //float angle = Mathf.Atan2(dir.y, dir.x);
+        //head.eulerAngles = new Vector3(head.eulerAngles.x, angle, head.eulerAngles.z);
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
         SpiderAnim();
+        head.LookAt(target.transform);
     }
 
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
     {
-        NavMeshPath path = new NavMeshPath();
-
         if (Physics.Raycast(pos, Vector3.down, out RaycastHit hit))
         {
             pos = hit.point;
@@ -174,7 +177,7 @@ public class SpiderAnimator : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        StartCoroutine(PlayerCtrl.CameraShakeCor(0.1f, 0.05f, false));
+        StartCoroutine(Util.CameraShakeCor(0.1f, 0.05f, false));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
     }

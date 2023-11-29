@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator StartBossBattle()
     {
         float dT = 0;
-        StartCoroutine(PlayerCtrl.CameraShakeCor(0.3f, battleChangeTime, true));
+        StartCoroutine(Util.CameraShakeCor(0.3f, battleChangeTime, true));
         while (dT < battleChangeTime)
         {
             dT += Time.deltaTime;
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
             mainLight.gameObject.transform.eulerAngles = Vector3.Lerp(new Vector3(45, -30, 0), new Vector3(-10, -30, 0), dT / battleChangeTime);
             
         }
-        StartCoroutine(PlayerCtrl.CameraShakeCor(0.3f, 0.3f, false));
+        StartCoroutine(Util.CameraShakeCor(0.3f, 0.3f, false));
         boss.gameObject.SetActive(true);
         isStartBattle = true;
     }

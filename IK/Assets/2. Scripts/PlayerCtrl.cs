@@ -6,7 +6,7 @@ using static UnityEditor.Progress;
 
 public class PlayerCtrl : MonoBehaviour
 {
-    public static bool isCameraShake = false;
+
     public Animator animator;
 
 
@@ -137,7 +137,7 @@ public class PlayerCtrl : MonoBehaviour
                 if (touchables[i].gameObject == nowWeapon)
                     continue;
 
-                if (IsTargetInSight(touchables[i].transform, headTr, 60f))
+                if (Util.IsTargetInSight(touchables[i].transform, headTr, 60f))
                 {
                     if(idx == -1)
                     {
@@ -251,36 +251,9 @@ public class PlayerCtrl : MonoBehaviour
         }
     }
 
-    public static IEnumerator CameraShakeCor(float intense, float time, bool increasing)
-    {
-        if (isCameraShake == true)
-            yield break;
 
-        PlayerCtrl.isCameraShake = true;
-        float dT = 0;
-        float nowIntense = increasing ? 0 : intense;
-        Camera cam = Camera.main;
-        Vector3 originPos = cam.transform.localPosition;
-        while(dT < time)
-        {
-            cam.transform.localPosition = originPos + new Vector3(UnityEngine.Random.Range(-nowIntense, nowIntense), UnityEngine. Random.Range(-nowIntense, nowIntense), 0);
-            nowIntense = increasing ? Mathf.Lerp(0, intense, dT / time) : Mathf.Lerp(intense, 0, dT / time);
-            dT += Time.deltaTime;
-            yield return null;
-        }
-        cam.transform.localPosition = originPos;
-        PlayerCtrl.isCameraShake = false;
-    }
 
-    private bool IsTargetInSight(Transform target, Transform origin, float degree)
-    {
-        Vector3 dir = (target.position - origin.position).normalized;
 
-        float dot = Vector3.Dot(origin.forward, dir);
-        float theta = MathF.Acos(dot) * Mathf.Rad2Deg;
-
-        return theta <= degree;
-    }
 
     private void UnequipWeapon()
     {
@@ -298,7 +271,7 @@ public class PlayerCtrl : MonoBehaviour
         if (nowWeapon == null)
             return;
 
-        StartCoroutine(CameraShakeCor(0.1f, 0.1f, false));
+        StartCoroutine(Util.CameraShakeCor(0.1f, 0.1f, false));
 
         WeaponCtrl weapon = nowWeapon.GetComponent<WeaponCtrl>();
 
@@ -307,7 +280,7 @@ public class PlayerCtrl : MonoBehaviour
         {
             foreach (var entity in colliders)
             {
-                if(IsTargetInSight(entity.transform, transform, weapon.attackDegree) 
+                if(Util.IsTargetInSight(entity.transform, transform, weapon.attackDegree) 
                     && entity.transform.IsChildOf(weaponTr) == false
                     && entity.GetComponent<PlayerCtrl>() is null)
                 {
