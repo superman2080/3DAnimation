@@ -9,6 +9,13 @@ using static UnityEditor.PlayerSettings;
 
 public class SpiderAnimator : MonoBehaviour
 {
+    [Header("Related to Game play")]
+    public float maxTargetRange;
+    private PlayerCtrl player;  //플레이어 정보
+    private Vector3 targetPos;  //현재 추적 위치
+    private Coroutine chaseCor;
+    private Coroutine skillCor = null;
+    [Header("Related to Spider Animation")]
     private const int legLength = 4;
     public float speed;
     public float maxLegDist;
@@ -40,42 +47,51 @@ public class SpiderAnimator : MonoBehaviour
     private float rotY;
     private Vector3 lastBodyUp;
 
-    private GameObject target;
-
     // Start is called before the first frame update
     void Start()
     {
         rb = gameObject.GetComponent<Rigidbody>();
+        player = FindObjectOfType<PlayerCtrl>();
+        targetPos = player.transform.position;
+
         for (int i = 0; i < legLength; i++)
         {
             lastLegPos[i] = legTarget[i].position;
         }
         lastBodyUp = transform.up;
-
-        target = FindObjectOfType<PlayerCtrl>().gameObject;
-        StartCoroutine(MoveToPosition(target.transform.position, speed, .4f));
+        rotY = Mathf.Atan2(-(targetPos.z - transform.position.z), -(targetPos.x - transform.position.x)) * Mathf.Rad2Deg + 90;
+        body.localRotation = Quaternion.Euler(body.localEulerAngles.x, rotY, body.localEulerAngles.z);
     }
 
     private void Update()
     {
-        //float v = Input.GetAxis("Vertical");
-        //float h = Input.GetAxis("Horizontal") * 0.15f;
-        //transform.Translate(Mathf.Sin(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * v * speed * Time.deltaTime);
-        //rotY = Mathf.Repeat(rotY - h, 360f);
-        //Vector3 dir = (target.transform.position - transform.position).normalized;
-        //float angle = Mathf.Atan2(dir.y, dir.x);
-        //head.eulerAngles = new Vector3(head.eulerAngles.x, angle, head.eulerAngles.z);
+
+
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        SpiderAnim();
-        head.LookAt(target.transform);
+        if (Vector3.Distance(transform.position, player.transform.position) > 10 && skillCor == null)
+        {
+            skillCor = StartCoroutine(Dash(player.transform.position + Vector3.up * GetBodyOffsetY(), 1.5f));
+        }
+        else if (Vector3.Distance(transform.position, player.transform.position) > maxTargetRange && skillCor == null)
+        {
+            if (chaseCor != null)
+                StopCoroutine(chaseCor);
+            targetPos = player.transform.position;
+            chaseCor = StartCoroutine(MoveToPosition(targetPos, speed, 75f));
+        }
+
+        if (skillCor == null)
+            SpiderAnim();
+        head.LookAt(targetPos);
     }
 
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
     {
+        //rotation
         if (Physics.Raycast(pos, Vector3.down, out RaycastHit hit))
         {
             pos = hit.point;
@@ -85,25 +101,31 @@ public class SpiderAnimator : MonoBehaviour
 
         float originY = rotY;
         float lookAtY = Mathf.Atan2(-(pos.z - transform.position.z), -(pos.x - transform.position.x)) * Mathf.Rad2Deg + 90;
+        float rotTime = Mathf.Repeat(Mathf.Max(originY, lookAtY) - Mathf.Min(originY, lookAtY), 360f) / rotSpeed;
         float dT = 0;
-        while (true)
+        while (dT < rotTime)
         {
-            if(rotY == lookAtY)
-                break;
- 
             dT += Time.deltaTime;
             yield return null;
-            rotY = Mathf.Lerp(originY, lookAtY, dT * rotSpeed);
+            rotY = Mathf.Lerp(originY, lookAtY, dT / rotTime);
         }
-        while (true)
+        //
+
+        //move
+        dT = 0;
+        Vector3 originPos = transform.position;
+        float moveTime = Vector3.Distance(originPos, pos) / moveSpeed;
+        while (dT < moveTime)
         {
-            transform.Translate(new Vector3(Mathf.Sin(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime, 0, Mathf.Cos(-rotY * Mathf.Deg2Rad) * moveSpeed * Time.deltaTime));
+            dT += Time.deltaTime;
             yield return null;
-            if((new Vector3(pos.x, GetBodyOffsetY(), pos.z) - transform.position).magnitude < 0.5f)
-            {
-                break;
-            }
+
+            Vector3 moveToPos = Vector3.Lerp(originPos, pos, dT / moveTime);
+
+            transform.position = new Vector3(moveToPos.x, GetBodyOffsetY(), moveToPos.z);
         }
+        //
+        chaseCor = null;
     }
 
     private void SpiderAnim()
@@ -166,6 +188,7 @@ public class SpiderAnimator : MonoBehaviour
 
     }
 
+    //Spider Anim
     private IEnumerator LegIK(int idx, Vector3 moveTo)
     {
         Vector3 origin = lastLegPos[idx];
@@ -180,21 +203,6 @@ public class SpiderAnimator : MonoBehaviour
         StartCoroutine(Util.CameraShakeCor(0.1f, 0.05f, false));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
-    }
-
-    private void OnDrawGizmos()
-    {
-        for (int i = 0; i < legLength; i++)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(legTarget[i].position, 0.05f);
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(moveToLegPos[i], 0.05f);
-
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(legTarget[i].position, moveToLegPos[i]);
-        }
     }
 
     private bool IsOpperatingOppositeLegCor(int idx)
@@ -241,5 +249,53 @@ public class SpiderAnimator : MonoBehaviour
         //averageY *= bodyShakingOffset;
         //float shakeOffset = Mathf.Sin((Mathf.Repeat(Time.time * 3f, 2f) - 1f) * 180f * Mathf.Deg2Rad) * bodyShakingOffset;
         return averageY + bodyOffset + shakeOffset;
+    }
+
+    private void OnDrawGizmos()
+    {
+        for (int i = 0; i < legLength; i++)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(legTarget[i].position, 0.05f);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(moveToLegPos[i], 0.05f);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(legTarget[i].position, moveToLegPos[i]);
+        }
+    }
+    //
+
+    private IEnumerator Dash(Vector3 targetPos, float time)
+    {
+        Vector3 originPos = transform.position;
+        targetPos = Vector3.Lerp(originPos, targetPos, 0.9f);
+        Vector3 high = Vector3.Lerp(originPos, targetPos, 0.2f);
+        high.y = (originPos.y + targetPos.y) / 2 + 7.5f;
+
+        foreach (var leg in legTarget)
+        {
+            leg.position = body.position;
+        }
+
+        float dT = 0;
+        while(dT < time * 0.667f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            transform.position = Vector3.Lerp(originPos, high, dT / (time * 0.667f));
+        }
+        dT = 0;
+
+        while (dT < time * 0.333f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            transform.position = Vector3.Lerp(high, targetPos, dT / (time * 0.333f));
+        }
+        StartCoroutine(Util.CameraShakeCor(0.5f, 0.2f, false));
+        transform.position = targetPos;
+        skillCor = null;
     }
 }

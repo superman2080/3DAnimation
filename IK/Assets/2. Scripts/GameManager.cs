@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+
     public PlayerCtrl player;
     public SpiderAnimator boss;
     public float battleChangeTime = 3f;
@@ -13,7 +14,6 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -35,8 +35,7 @@ public class GameManager : MonoBehaviour
             dT += Time.deltaTime;
             yield return null;
 
-            mainLight.gameObject.transform.eulerAngles = Vector3.Lerp(new Vector3(45, -30, 0), new Vector3(-10, -30, 0), dT / battleChangeTime);
-            
+            mainLight.gameObject.transform.eulerAngles = Vector3.Lerp(new Vector3(45, -30, 0), new Vector3(-15, -30, 0), dT / battleChangeTime);
         }
         StartCoroutine(Util.CameraShakeCor(0.3f, 0.3f, false));
         boss.gameObject.SetActive(true);
