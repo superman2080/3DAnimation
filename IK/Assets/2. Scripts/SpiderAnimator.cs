@@ -10,7 +10,9 @@ using static UnityEditor.PlayerSettings;
 public class SpiderAnimator : MonoBehaviour
 {
     [Header("Related to Game play")]
+    public float chaseDist;
     public float maxTargetRange;
+    public float dashDist;
     private PlayerCtrl player;  //플레이어 정보
     private Vector3 targetPos;  //현재 추적 위치
     private Coroutine chaseCor;
@@ -65,25 +67,42 @@ public class SpiderAnimator : MonoBehaviour
 
     private void Update()
     {
+        if (skillCor != null)
+            return;
 
+        float distBetweenTarget = Vector3.Distance(transform.position, targetPos);
 
+        if (distBetweenTarget >= chaseDist && distBetweenTarget < dashDist)
+        {
+            //플레이어와 타겟위치가 일정 이상 벌어졌다면
+            if (Vector3.Distance(player.transform.position, targetPos) > maxTargetRange && chaseCor != null)
+            {
+                //타겟 위치 재설정
+                StopCoroutine(chaseCor);
+                chaseCor = null;
+                targetPos = player.transform.position;
+            }
+            //추적
+            if(chaseCor == null)
+            {
+                chaseCor = StartCoroutine(MoveToPosition(targetPos, speed, 75f));
+            }
+        }
+        //대쉬
+        else if (distBetweenTarget >= dashDist)
+        {
+            if(chaseCor != null)
+            {
+                StopCoroutine(chaseCor);
+                chaseCor = null;
+            }
+            skillCor = StartCoroutine(Dash(player.transform, 1.5f));
+        }
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (Vector3.Distance(transform.position, player.transform.position) > 10 && skillCor == null)
-        {
-            skillCor = StartCoroutine(Dash(player.transform.position + Vector3.up * GetBodyOffsetY(), 1.5f));
-        }
-        else if (Vector3.Distance(transform.position, player.transform.position) > maxTargetRange && skillCor == null)
-        {
-            if (chaseCor != null)
-                StopCoroutine(chaseCor);
-            targetPos = player.transform.position;
-            chaseCor = StartCoroutine(MoveToPosition(targetPos, speed, 75f));
-        }
-
         if (skillCor == null)
             SpiderAnim();
         head.LookAt(targetPos);
@@ -101,6 +120,12 @@ public class SpiderAnimator : MonoBehaviour
 
         float originY = rotY;
         float lookAtY = Mathf.Atan2(-(pos.z - transform.position.z), -(pos.x - transform.position.x)) * Mathf.Rad2Deg + 90;
+        if (originY - lookAtY > 180f)
+            lookAtY += 360f;
+        if (lookAtY - originY > 180f)
+            lookAtY -= 360f;
+
+        Debug.LogError($"originY: {originY}, lookAtY: {lookAtY}");
         float rotTime = Mathf.Repeat(Mathf.Max(originY, lookAtY) - Mathf.Min(originY, lookAtY), 360f) / rotSpeed;
         float dT = 0;
         while (dT < rotTime)
@@ -267,12 +292,11 @@ public class SpiderAnimator : MonoBehaviour
     }
     //
 
-    private IEnumerator Dash(Vector3 targetPos, float time)
+    private IEnumerator Dash(Transform targetTr, float time)
     {
         Vector3 originPos = transform.position;
-        targetPos = Vector3.Lerp(originPos, targetPos, 0.9f);
-        Vector3 high = Vector3.Lerp(originPos, targetPos, 0.2f);
-        high.y = (originPos.y + targetPos.y) / 2 + 7.5f;
+        Vector3 high = Vector3.Lerp(originPos, targetTr.position, 0.2f);
+        high.y = (originPos.y + targetTr.transform.position.y) / 2 + 7.5f;
 
         foreach (var leg in legTarget)
         {
@@ -286,7 +310,10 @@ public class SpiderAnimator : MonoBehaviour
             yield return null;
             transform.position = Vector3.Lerp(originPos, high, dT / (time * 0.667f));
         }
+
         dT = 0;
+        Vector3 targetPos = Vector3.Lerp(high, targetTr.transform.position, 0.9f);
+        targetPos.y = targetPos.y + bodyOffset;
 
         while (dT < time * 0.333f)
         {
