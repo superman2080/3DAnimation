@@ -68,6 +68,8 @@ public class SpiderAnimator : MonoBehaviour
 
     private void Update()
     {
+        head.LookAt(targetPos);
+
         if (skillCor != null)
             return;
 
@@ -81,7 +83,9 @@ public class SpiderAnimator : MonoBehaviour
                 chaseCor = null;
             }
             if (skillCor == null)
-                skillCor = StartCoroutine(Attack1(2, 10f));
+            {
+                skillCor = StartCoroutine(SmashGround(3, 4, 10f));
+            }
         }
 
         else if (distBetweenPlayer >= attackDis && distBetweenPlayer < chaseDist)
@@ -119,7 +123,6 @@ public class SpiderAnimator : MonoBehaviour
         if (skillCor == null)
         {
             SpiderAnim();
-            head.LookAt(targetPos);
         }
     }
 
@@ -140,7 +143,6 @@ public class SpiderAnimator : MonoBehaviour
         if (lookAtY - originY > 180f)
             lookAtY -= 360f;
 
-        Debug.LogError($"originY: {originY}, lookAtY: {lookAtY}");
         float rotTime = Mathf.Repeat(Mathf.Max(originY, lookAtY) - Mathf.Min(originY, lookAtY), 360f) / rotSpeed;
         float dT = 0;
         while (dT < rotTime)
@@ -337,45 +339,54 @@ public class SpiderAnimator : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
     }
 
-    private IEnumerator Attack1(float castTime, float radius)
+    private IEnumerator SmashGround(float cnt, float castTime, float radius)
     {
         float dT = 0;
+        int legIdx = 0;
         SpiderAnim();
-        Vector3 origin = moveToLegPos[0];
-        Vector3 high = moveToLegPos[0] + Vector3.up * 5f;
         for (int i = 0; i < legLength; i++)
         {
             legTarget[i].position = moveToLegPos[i];
         }
 
-        while(dT < castTime * 0.7f)
+        for (int i = 0; i < cnt; i++)
         {
-            dT += Time.deltaTime;
-            yield return null;
-            legTarget[0].position = Vector3.Lerp(origin, high, dT / (castTime * 0.75f));
-        }
-        dT = 0;
-        while (dT < castTime * 0.25f)
-        {
-            dT += Time.deltaTime;
-            yield return null;
-        }
-        dT = 0;
-        while (dT < castTime * 0.05f)
-        {
-            dT += Time.deltaTime;
-            yield return null;
-            legTarget[0].position = Vector3.Lerp(high, origin, dT / (castTime * 0.05f));
-        }
-        Collider[] col = Physics.OverlapSphere(moveToLegPos[0], radius, 1 << LayerMask.NameToLayer("Player"));
-        foreach (var item in col)
-        {
-            if(item.TryGetComponent(out PlayerCtrl p))
+            Vector3 origin = moveToLegPos[legIdx];
+            Vector3 high = moveToLegPos[legIdx] + Vector3.up * 5f;
+
+            while (dT < castTime * 0.7f / cnt)
             {
-                Debug.Log(p.name);
+                dT += Time.deltaTime;
+                yield return null;
+                legTarget[legIdx].position = Vector3.Lerp(origin, high, dT / (castTime * 0.75f / cnt));
             }
+            dT = 0;
+            while (dT < castTime * 0.25f / cnt)
+            {
+                dT += Time.deltaTime;
+                yield return null;
+            }
+            dT = 0;
+            while (dT < castTime * 0.05f / cnt)
+            {
+                dT += Time.deltaTime;
+                yield return null;
+                legTarget[legIdx].position = Vector3.Lerp(high, origin, dT / (castTime * 0.05f / cnt));
+
+            }
+            Collider[] col = Physics.OverlapSphere(moveToLegPos[legIdx], radius, 1 << LayerMask.NameToLayer("Player"));
+            foreach (var item in col)
+            {
+                if (item.TryGetComponent(out PlayerCtrl p))
+                {
+                    Debug.Log(p.name);
+                }
+            }
+            legIdx = legIdx == 0 ? 2 : 0;
+            StartCoroutine(Util.CameraShakeCor(Mathf.Clamp((radius - Vector3.Distance(origin, player.transform.position)) / radius, 0.15f, 0.3f), 0.5f, false));
         }
-        StartCoroutine(Util.CameraShakeCor(Mathf.Clamp((radius - Vector3.Distance(origin, player.transform.position)) / radius, 0.15f, 0.3f), 0.5f, false));
         skillCor = null;
     }
+
+    
 }
