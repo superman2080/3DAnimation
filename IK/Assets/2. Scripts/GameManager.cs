@@ -1,9 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    public Image fadeImage;
+    public GameObject bossPanel;
+    public Slider bossHPBar;
 
     public PlayerCtrl player;
     public SpiderAnimator boss;
@@ -37,8 +41,24 @@ public class GameManager : MonoBehaviour
 
             mainLight.gameObject.transform.eulerAngles = Vector3.Lerp(new Vector3(45, -30, 0), new Vector3(-15, -30, 0), dT / battleChangeTime);
         }
-        StartCoroutine(Util.CameraShakeCor(0.3f, 0.3f, false));
+        fadeImage.gameObject.SetActive(true);
+        yield return StartCoroutine(FadeImage(fadeImage, Color.black, Color.clear, 1f));
         boss.gameObject.SetActive(true);
+        fadeImage.gameObject.SetActive(false);
+        StartCoroutine(Util.CameraShakeCor(0.3f, 0.3f, false));
         isStartBattle = true;
+    }
+
+    private IEnumerator FadeImage(Image image, Color origin, Color end, float time)
+    {
+        image.color = origin;
+        float dT = 0;
+        while(dT < time)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            image.color = Color.Lerp(origin, end, dT / time);
+        }
+        image.color = end;
     }
 }
