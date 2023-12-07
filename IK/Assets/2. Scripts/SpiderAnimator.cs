@@ -10,6 +10,8 @@ using static UnityEditor.PlayerSettings;
 public class SpiderAnimator : MonoBehaviour
 {
     [Header("Related to Game play")]
+    public float maxHP;
+    public float hp { get; private set; }
     public float attackDis;
     public float maxTargetRange;
     public float chaseDist;
@@ -54,6 +56,7 @@ public class SpiderAnimator : MonoBehaviour
     void Start()
     {
         rb = gameObject.GetComponent<Rigidbody>();
+        hp = maxHP;
         player = FindObjectOfType<PlayerCtrl>();
         targetPos = player.transform.position;
 
@@ -84,7 +87,8 @@ public class SpiderAnimator : MonoBehaviour
             }
             if (skillCor == null)
             {
-                skillCor = StartCoroutine(SmashGround(3, 4, 10f));
+                skillCor = StartCoroutine(SkillCor());
+                //skillCor = StartCoroutine(SmashGround(6, 3f, 10f));
             }
         }
 
@@ -309,6 +313,24 @@ public class SpiderAnimator : MonoBehaviour
     }
     //
 
+    private IEnumerator SkillCor()
+    {
+        int skillIdx = UnityEngine.Random.Range(0, 2);
+        switch (skillIdx)
+        {
+            case 0:
+                yield return StartCoroutine(SmashGround(6, 3f, 3f));
+                break;
+            case 1:
+                yield return StartCoroutine(Disruption(1.5f, 3f));
+                break;
+            default:
+                break;
+        }
+        yield return new WaitForSeconds(0.5f);
+        skillCor = null;
+    }
+
     private IEnumerator Dash(Transform targetTr, float time)
     {
         Vector3 originPos = transform.position;
@@ -336,7 +358,7 @@ public class SpiderAnimator : MonoBehaviour
         StartCoroutine(Util.CameraShakeCor(0.5f, 0.2f, false));
         transform.position = targetPos;
         skillCor = null;
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.5f);
     }
 
     private IEnumerator SmashGround(float cnt, float castTime, float radius)
@@ -354,39 +376,89 @@ public class SpiderAnimator : MonoBehaviour
             Vector3 origin = moveToLegPos[legIdx];
             Vector3 high = moveToLegPos[legIdx] + Vector3.up * 5f;
 
-            while (dT < castTime * 0.7f / cnt)
+            while (dT < castTime * 0.5f / cnt)
             {
                 dT += Time.deltaTime;
                 yield return null;
-                legTarget[legIdx].position = Vector3.Lerp(origin, high, dT / (castTime * 0.75f / cnt));
+                legTarget[legIdx].position = Vector3.Lerp(origin, high, dT / (castTime * 0.5f / cnt));
+                transform.position = new Vector3(transform.position.x, GetBodyOffsetY(), transform.position.z);
             }
+            yield return new WaitForSeconds(castTime * 0.25f / cnt);
             dT = 0;
             while (dT < castTime * 0.25f / cnt)
             {
                 dT += Time.deltaTime;
                 yield return null;
+                legTarget[legIdx].position = Vector3.Lerp(high, origin, dT / (castTime * 0.25f / cnt));
+                transform.position = new Vector3(transform.position.x, GetBodyOffsetY(), transform.position.z);
             }
-            dT = 0;
-            while (dT < castTime * 0.05f / cnt)
-            {
-                dT += Time.deltaTime;
-                yield return null;
-                legTarget[legIdx].position = Vector3.Lerp(high, origin, dT / (castTime * 0.05f / cnt));
-
-            }
+            EffectManager.EffectOneshot("DustExplosion", origin, Quaternion.identity);
             Collider[] col = Physics.OverlapSphere(moveToLegPos[legIdx], radius, 1 << LayerMask.NameToLayer("Player"));
             foreach (var item in col)
             {
                 if (item.TryGetComponent(out PlayerCtrl p))
                 {
-                    Debug.Log(p.name);
+                    p.TakeDamage(5f);
                 }
             }
             legIdx = legIdx == 0 ? 2 : 0;
-            StartCoroutine(Util.CameraShakeCor(Mathf.Clamp((radius - Vector3.Distance(origin, player.transform.position)) / radius, 0.15f, 0.3f), 0.5f, false));
+            StartCoroutine(Util.CameraShakeCor(Mathf.Clamp((radius - Vector3.Distance(origin, player.transform.position)) / radius, 0.05f, 0.1f), 0.25f, false));
         }
-        skillCor = null;
     }
 
-    
+    private IEnumerator Disruption(float castTime, float radius)
+    {
+        float dT = 0;
+        int legIdx = 0;
+        SpiderAnim();
+        for (int i = 0; i < legLength; i++)
+        {
+            legTarget[i].position = moveToLegPos[i];
+        }
+        Vector3 origin = moveToLegPos[0];
+        Vector3 high = moveToLegPos[0] + Vector3.up * 5f;
+        Vector3 castPos = Vector3.zero;
+
+        while (dT < castTime * 0.75f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            legTarget[legIdx].position = Vector3.Lerp(origin, high, dT / (castTime * 0.75f));
+            transform.position = new Vector3(transform.position.x, GetBodyOffsetY(), transform.position.z);
+        }
+        if (Physics.Raycast(player.transform.position, Vector3.down, out RaycastHit groundHit, float.MaxValue, 1 << LayerMask.NameToLayer("Ground")))
+        {
+            castPos = groundHit.point;
+        }
+        yield return new WaitForSeconds(castTime * 0.25f);
+        dT = 0;
+        while (dT < castTime * 0.05f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            legTarget[legIdx].position = Vector3.Lerp(high, origin, dT / (castTime * 0.05f));
+            transform.position = new Vector3(transform.position.x, GetBodyOffsetY(), transform.position.z);
+        }
+        StartCoroutine(DarknessPillar(castPos, radius));
+    }
+
+    private IEnumerator DarknessPillar(Vector3 pos, float radius)
+    {
+        GameObject effect = EffectManager.EffectOneshot("DarknessSpell", pos, Quaternion.identity);
+        effect.transform.localScale = Vector3.one * radius;
+        for (int i = 0; i < 10; i++)
+        {
+            if (Physics.SphereCast(pos + Vector3.up * 10, radius, Vector3.down, out RaycastHit playerHit, Mathf.Infinity, 1 << LayerMask.NameToLayer("Player")))
+            {
+                player.TakeDamage(3f);
+            }
+            yield return new WaitForSeconds(effect.GetComponent<ParticleSystem>().main.duration / 10f);
+        }
+    }
+
+    public void TakeDamage(float value)
+    {
+        hp -= value;
+    }
+
 }

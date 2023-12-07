@@ -6,9 +6,9 @@ using static UnityEditor.Progress;
 
 public class PlayerCtrl : MonoBehaviour
 {
-
+    public float maxHP;
+    public float hp { get; private set; }
     public Animator animator;
-
 
     [Header("Related to movement")]
     [Range(0.5f, 2.5f)]
@@ -27,6 +27,7 @@ public class PlayerCtrl : MonoBehaviour
     
     private Coroutine attackCor;
     private Coroutine jumpCor;
+    private Coroutine healCor;
 
     [HideInInspector]
     public GameObject nowWeapon;
@@ -45,8 +46,10 @@ public class PlayerCtrl : MonoBehaviour
     void Start()
     {
         rb = gameObject.GetComponent<Rigidbody>();
+        hp = maxHP;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        
     }
 
     // Update is called once per frame
@@ -92,6 +95,11 @@ public class PlayerCtrl : MonoBehaviour
             nowWeapon.transform.position = weaponTr.position;
             nowWeapon.transform.eulerAngles = weaponTr.eulerAngles;
             nowWeapon.GetComponent<WeaponCtrl>().trailMesh.SetActive(false);
+        }
+
+        if(Input.GetKeyDown(KeyCode.R) && attackCor == null && healCor == null && jumpCor == null)
+        {
+            healCor = StartCoroutine(HealCor(25f));
         }
     }
 
@@ -266,7 +274,7 @@ public class PlayerCtrl : MonoBehaviour
         }
     }
 
-    public void Attack()
+    public void Attack(int idx)
     {
         if (nowWeapon == null)
             return;
@@ -282,11 +290,37 @@ public class PlayerCtrl : MonoBehaviour
             {
                 if(Util.IsTargetInSight(entity.transform, transform, weapon.attackDegree) 
                     && entity.transform.IsChildOf(weaponTr) == false
-                    && entity.GetComponent<PlayerCtrl>() is null)
+                    && entity.TryGetComponent(out SpiderAnimator boss))
                 {
-                    Debug.Log(entity.name);
+                    boss.TakeDamage(Mathf.Round(weapon.damage * idx));
                 }
             }
         }
+    }
+
+    public void TakeDamage(float value)
+    {
+        hp -= value;
+    }
+
+    public void Heal(float value)
+    {
+        hp = Mathf.Clamp(hp + value, 0, maxHP);
+    }
+
+    private IEnumerator HealCor(float value)
+    {
+        float dT = 0;
+        GameObject healEffect = EffectManager.EffectOneshot("Healing", transform.position, Quaternion.identity);
+        float totalTime = healEffect.GetComponent<ParticleSystem>().main.duration;
+        while (dT < totalTime)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            if (healEffect != null)
+                healEffect.transform.position = transform.position;
+        }
+        Heal(value);
+        healCor = null;
     }
 }

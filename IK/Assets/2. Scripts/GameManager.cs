@@ -34,6 +34,10 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(StartBossBattle());
         }
+        if(isStartBattle == true)
+        {
+            bossHPBar.value = boss.hp / boss.maxHP;
+        }
     }
 
 
@@ -45,7 +49,6 @@ public class GameManager : MonoBehaviour
         {
             dT += Time.deltaTime;
             yield return null;
-
             mainLight.gameObject.transform.eulerAngles = Vector3.Lerp(new Vector3(45, -30, 0), new Vector3(-15, -30, 0), dT / battleChangeTime);
         }
         //

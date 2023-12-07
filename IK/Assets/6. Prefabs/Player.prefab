@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 6848182104425935235}
   - component: {fileID: 6848182104425935232}
   - component: {fileID: 6848182104425935233}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,6 +103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d86daf2cb564c46b8fe7b554aec124, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHP: 100
+  hp: 0
   animator: {fileID: 6848182104425935239}
   mouseSensation: 2.5
   speed: 3
@@ -121,7 +123,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189816591363551559}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
   m_Name: 
