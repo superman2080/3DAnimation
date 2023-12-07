@@ -10,15 +10,14 @@ using static UnityEditor.PlayerSettings;
 public class SpiderAnimator : MonoBehaviour
 {
     [Header("Related to Game play")]
-    public float chaseDist;
+    public float attackDis;
     public float maxTargetRange;
-    public float dashDist;
+    public float chaseDist;
     private PlayerCtrl player;  //플레이어 정보
     private Vector3 targetPos;  //현재 추적 위치
     private Coroutine chaseCor;
     private Coroutine skillCor = null;
     [Header("Related to Spider Animation")]
-    private const int legLength = 4;
     public float speed;
     public float maxLegDist;
     [Range(0.05f, 5f)]
@@ -42,6 +41,8 @@ public class SpiderAnimator : MonoBehaviour
     //현재 코루틴 실행중인가
     private Coroutine[] legCor = new Coroutine[legLength];
     public float smoothness = 5f;
+
+    private const int legLength = 4;
     private int[] rPair = { 0, 1};
     private int[] lPair = { 3, 2};
 
@@ -70,9 +71,20 @@ public class SpiderAnimator : MonoBehaviour
         if (skillCor != null)
             return;
 
-        float distBetweenTarget = Vector3.Distance(transform.position, targetPos);
+        float distBetweenPlayer = Vector3.Distance(transform.position, player.transform.position);
 
-        if (distBetweenTarget >= chaseDist && distBetweenTarget < dashDist)
+        if(distBetweenPlayer < attackDis)
+        {
+            if (chaseCor != null)
+            {
+                StopCoroutine(chaseCor);
+                chaseCor = null;
+            }
+            if (skillCor == null)
+                skillCor = StartCoroutine(Attack1(2, 10f));
+        }
+
+        else if (distBetweenPlayer >= attackDis && distBetweenPlayer < chaseDist)
         {
             //플레이어와 타겟위치가 일정 이상 벌어졌다면
             if (Vector3.Distance(player.transform.position, targetPos) > maxTargetRange && chaseCor != null)
@@ -89,14 +101,15 @@ public class SpiderAnimator : MonoBehaviour
             }
         }
         //대쉬
-        else if (distBetweenTarget >= dashDist)
+        else if (distBetweenPlayer >= chaseDist)
         {
             if(chaseCor != null)
             {
                 StopCoroutine(chaseCor);
                 chaseCor = null;
             }
-            skillCor = StartCoroutine(Dash(player.transform, 1.5f));
+            if (skillCor == null)
+                skillCor = StartCoroutine(Dash(player.transform, 1.5f));
         }
     }
 
@@ -104,8 +117,10 @@ public class SpiderAnimator : MonoBehaviour
     void FixedUpdate()
     {
         if (skillCor == null)
+        {
             SpiderAnim();
-        head.LookAt(targetPos);
+            head.LookAt(targetPos);
+        }
     }
 
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
@@ -225,7 +240,7 @@ public class SpiderAnimator : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
 
-        StartCoroutine(Util.CameraShakeCor(0.1f, 0.05f, false));
+        //StartCoroutine(Util.CameraShakeCor(0.1f, 0.05f, false));
         lastLegPos[idx] = moveTo;
         legCor[idx] = null;
     }
@@ -298,11 +313,6 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 high = Vector3.Lerp(originPos, targetTr.position, 0.2f);
         high.y = (originPos.y + targetTr.transform.position.y) / 2 + 7.5f;
 
-        foreach (var leg in legTarget)
-        {
-            leg.position = body.position;
-        }
-
         float dT = 0;
         while(dT < time * 0.667f)
         {
@@ -323,6 +333,49 @@ public class SpiderAnimator : MonoBehaviour
         }
         StartCoroutine(Util.CameraShakeCor(0.5f, 0.2f, false));
         transform.position = targetPos;
+        skillCor = null;
+        yield return new WaitForSeconds(0.1f);
+    }
+
+    private IEnumerator Attack1(float castTime, float radius)
+    {
+        float dT = 0;
+        SpiderAnim();
+        Vector3 origin = moveToLegPos[0];
+        Vector3 high = moveToLegPos[0] + Vector3.up * 5f;
+        for (int i = 0; i < legLength; i++)
+        {
+            legTarget[i].position = moveToLegPos[i];
+        }
+
+        while(dT < castTime * 0.7f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            legTarget[0].position = Vector3.Lerp(origin, high, dT / (castTime * 0.75f));
+        }
+        dT = 0;
+        while (dT < castTime * 0.25f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+        }
+        dT = 0;
+        while (dT < castTime * 0.05f)
+        {
+            dT += Time.deltaTime;
+            yield return null;
+            legTarget[0].position = Vector3.Lerp(high, origin, dT / (castTime * 0.05f));
+        }
+        Collider[] col = Physics.OverlapSphere(moveToLegPos[0], radius, 1 << LayerMask.NameToLayer("Player"));
+        foreach (var item in col)
+        {
+            if(item.TryGetComponent(out PlayerCtrl p))
+            {
+                Debug.Log(p.name);
+            }
+        }
+        StartCoroutine(Util.CameraShakeCor(Mathf.Clamp((radius - Vector3.Distance(origin, player.transform.position)) / radius, 0.15f, 0.3f), 0.5f, false));
         skillCor = null;
     }
 }
