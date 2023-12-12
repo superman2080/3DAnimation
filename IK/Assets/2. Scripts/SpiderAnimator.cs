@@ -19,6 +19,7 @@ public class SpiderAnimator : MonoBehaviour
     private Vector3 targetPos;  //현재 추적 위치
     private Coroutine chaseCor;
     private Coroutine skillCor = null;
+    private Coroutine deadCor = null;
     [Header("Related to Spider Animation")]
     public float speed;
     public float maxLegDist;
@@ -71,6 +72,13 @@ public class SpiderAnimator : MonoBehaviour
 
     private void Update()
     {
+        if(hp <= 0)
+        {
+            if (deadCor == null)
+                deadCor = StartCoroutine(DeadCor());
+            return;
+        }
+
         head.LookAt(targetPos);
 
         if (skillCor != null)
@@ -105,7 +113,7 @@ public class SpiderAnimator : MonoBehaviour
             //추적
             if(chaseCor == null)
             {
-                chaseCor = StartCoroutine(MoveToPosition(targetPos, speed, 75f));
+                chaseCor = StartCoroutine(MoveToPosition(targetPos + Vector3.down, speed, 75f));
             }
         }
         //대쉬
@@ -133,12 +141,14 @@ public class SpiderAnimator : MonoBehaviour
     public IEnumerator MoveToPosition(Vector3 pos, float moveSpeed, float rotSpeed)
     {
         //rotation
-        if (Physics.Raycast(pos, Vector3.down, out RaycastHit hit))
+        if (Physics.Raycast(pos + Vector3.up * 3, Vector3.down, out RaycastHit hit, Mathf.Infinity, 1 << LayerMask.NameToLayer("Ground")))
         {
             pos = hit.point;
         }
         else
+        {
             yield break;
+        }
 
         float originY = rotY;
         float lookAtY = Mathf.Atan2(-(pos.z - transform.position.z), -(pos.x - transform.position.x)) * Mathf.Rad2Deg + 90;
@@ -337,6 +347,10 @@ public class SpiderAnimator : MonoBehaviour
         Vector3 high = Vector3.Lerp(originPos, targetTr.position, 0.2f);
         high.y = (originPos.y + targetTr.transform.position.y) / 2 + 7.5f;
 
+        foreach (var leg in legTarget)
+        {
+            leg.localPosition = Vector3.up * 5; 
+        }
         float dT = 0;
         while(dT < time * 0.667f)
         {
@@ -454,6 +468,26 @@ public class SpiderAnimator : MonoBehaviour
             }
             yield return new WaitForSeconds(effect.GetComponent<ParticleSystem>().main.duration / 10f);
         }
+    }
+
+    private IEnumerator DeadCor()
+    {
+        Vector3 up = transform.position + Vector3.up * 2.5f;
+        Vector3 origin = transform.position;
+        GameObject effect = EffectManager.InstantiateEffect("Charge", 6f, origin, Quaternion.identity);
+        float dT = 0;
+        while(dT < 5)
+        {
+            transform.position = Vector3.Lerp(origin, up, dT / 5f);
+            if (effect != null)
+                effect.transform.position = body.position;
+            yield return null;
+            dT += Time.deltaTime;
+        }
+        GameObject bomb = EffectManager.EffectOneshot("FX_Fireworks_Blue_Large", up, Quaternion.identity);
+        bomb.transform.localScale = Vector3.one * 100f;
+        yield return null;
+        Destroy(gameObject);
     }
 
     public void TakeDamage(float value)

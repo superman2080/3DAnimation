@@ -49,7 +49,6 @@ public class PlayerCtrl : MonoBehaviour
         hp = maxHP;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        
     }
 
     // Update is called once per frame
@@ -65,7 +64,7 @@ public class PlayerCtrl : MonoBehaviour
         {
             dir.x = Input.GetAxis("Horizontal");
             dir.z = Input.GetAxis("Vertical");
-            if (Input.GetKey(KeyCode.LeftShift) && canMove == true)
+            if (Input.GetKey(KeyCode.LeftShift) && canMove == true && healCor == null)
                 dir *= dashSpeedMag;
             transform.Translate(dir * Time.deltaTime * speed);
         }
@@ -88,7 +87,7 @@ public class PlayerCtrl : MonoBehaviour
         //if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.y == 0)
         //    StartCoroutine(DelayedJump(0.5f));
 
-        if (Input.GetMouseButtonDown(0) && nowWeapon == null && rightHandObj != null)
+        if (Input.GetMouseButtonDown(0) && nowWeapon == null && rightHandObj != null && healCor == null)
         {
             rightHandObj.SetParent(weaponTr);
             nowWeapon = rightHandObj.gameObject;
@@ -119,7 +118,7 @@ public class PlayerCtrl : MonoBehaviour
         //블렌드 애니메이션 연습
         animator.SetFloat("Vertical", Input.GetAxis("Vertical"));
         animator.SetFloat("Horizontal", Input.GetAxis("Horizontal"));
-        animator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift));
+        animator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift) && healCor == null);
         //
 
         //애니메이션 레이어 연습

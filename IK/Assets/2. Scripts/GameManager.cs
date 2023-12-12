@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(StartBossBattle());
         }
-        if(isStartBattle == true)
+        if(isStartBattle == true && boss != null)
         {
             bossHPBar.value = boss.hp / boss.maxHP;
         }
