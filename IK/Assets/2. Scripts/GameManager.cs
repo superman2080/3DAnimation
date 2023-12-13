@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     public float battleChangeTime = 3f;
     public Light mainLight;
     private bool isStartBattle = false;
+    private bool isFinishedBattle = false;
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +38,12 @@ public class GameManager : MonoBehaviour
         if(isStartBattle == true && boss != null)
         {
             bossHPBar.value = boss.hp / boss.maxHP;
+        }
+        if (boss == null && isFinishedBattle == false)
+        {
+            isFinishedBattle = true;
+            fadeImage.gameObject.SetActive(true);
+            StartCoroutine(FadeImage(fadeImage, Color.clear, Color.black, 1.5f));
         }
     }
 

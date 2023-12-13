@@ -15,6 +15,7 @@ public class SpiderAnimator : MonoBehaviour
     public float attackDis;
     public float maxTargetRange;
     public float chaseDist;
+    public GameObject deadEffect;
     private PlayerCtrl player;  //플레이어 정보
     private Vector3 targetPos;  //현재 추적 위치
     private Coroutine chaseCor;
@@ -113,7 +114,7 @@ public class SpiderAnimator : MonoBehaviour
             //추적
             if(chaseCor == null)
             {
-                chaseCor = StartCoroutine(MoveToPosition(targetPos + Vector3.down, speed, 75f));
+                chaseCor = StartCoroutine(MoveToPosition(targetPos + Vector3.down, speed, 60f));
             }
         }
         //대쉬
@@ -474,7 +475,7 @@ public class SpiderAnimator : MonoBehaviour
     {
         Vector3 up = transform.position + Vector3.up * 2.5f;
         Vector3 origin = transform.position;
-        GameObject effect = EffectManager.InstantiateEffect("Charge", 6f, origin, Quaternion.identity);
+        GameObject effect = EffectManager.EffectOneshot("Charge", origin, Quaternion.identity);
         float dT = 0;
         while(dT < 5)
         {
@@ -484,9 +485,8 @@ public class SpiderAnimator : MonoBehaviour
             yield return null;
             dT += Time.deltaTime;
         }
-        GameObject bomb = EffectManager.EffectOneshot("FX_Fireworks_Blue_Large", up, Quaternion.identity);
-        bomb.transform.localScale = Vector3.one * 100f;
-        yield return null;
+        Destroy(Instantiate(deadEffect, up, Quaternion.identity), 3);
+
         Destroy(gameObject);
     }
 

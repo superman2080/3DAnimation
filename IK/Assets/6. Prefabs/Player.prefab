@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 6848182104425935237}
   - component: {fileID: 6848182104425935234}
   - component: {fileID: 6848182104425935235}
-  - component: {fileID: 6848182104425935232}
   - component: {fileID: 6848182104425935233}
   m_Layer: 7
   m_Name: Player
@@ -104,7 +103,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHP: 100
-  hp: 0
   animator: {fileID: 6848182104425935239}
   mouseSensation: 2.5
   speed: 3
@@ -116,22 +114,6 @@ MonoBehaviour:
   touchableObjSenseDist: 3
   jumpTr: {fileID: 1036730608809100301}
   nowWeapon: {fileID: 0}
---- !u!114 &6848182104425935232
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 189816591363551559}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_RigLayers:
-  - m_Rig: {fileID: 0}
-    m_Active: 1
-  m_Effectors: []
 --- !u!114 &6848182104425935233
 MonoBehaviour:
   m_ObjectHideFlags: 0
